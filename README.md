@@ -1,212 +1,84 @@
-# Sarfraz Autos — Project Architecture & Workflow
+# Sarfraz Autos — Pakistan's Trusted Motorcycle Spare Parts Distributor
 
-Website + Wholesale Portal + Admin Business Management Software
-Wholesale Motorcycle Spare Parts Distributor
-
----
-
-## 1. High-Level Structure
-
-```
-sarfraz-autos/
-│
-├── Home Page (Landing)
-│   └── Hero Section
-│       ├── [Button] Retail Shop        ──▶ goes to Retail Flow
-│       ├── [Button] Wholesale Login    ──▶ goes to Wholesale Flow
-│       └── [Button] Admin Login        ──▶ goes to Admin Flow
-│
-├── retail/
-│   ├── product-listing/
-│   │   ├── browse-by-category.js
-│   │   └── browse-by-bike-model.js
-│   ├── product-detail.js         (retail price shown)
-│   ├── cart.js
-│   ├── checkout.js
-│   ├── order-status.js           (Pending → Confirmed → Processing → Dispatched → Completed/Cancelled)
-│   └── order-history.js
-│
-├── wholesale/
-│   ├── registration/
-│   │   └── request-form.js       (Shop Name, Owner, Mobile, WhatsApp, City, Address, CNIC)
-│   ├── pending-approval.js       (shown while Admin has not approved yet)
-│   ├── login.js                  (only works after Admin approval)
-│   ├── dashboard/
-│   │   ├── overview.js
-│   │   ├── products-wholesale-price.js
-│   │   ├── schemes.js            (e.g. 10+1, auto-applied in cart)
-│   │   ├── quick-order.js        (bulk add multiple products at once)
-│   │   ├── cart.js
-│   │   ├── orders/
-│   │   │   ├── current-orders.js
-│   │   │   └── previous-orders.js
-│   │   ├── invoices.js
-│   │   ├── ledger.js             (outstanding balance / khata)
-│   │   ├── payment-history.js
-│   │   └── profile.js
-│
-└── admin/
-    ├── login.js                  (single admin account only — shared, no separate roles)
-    ├── dashboard/
-    │   ├── overview.js           (today's sales, purchases, low stock, new orders, cash/bank)
-    │   ├── branch-wise-sales.js
-    │   └── combined-all-branches-report.js
-    │
-    ├── branches/
-    │   ├── add-edit-branch.js
-    │   ├── deactivate-branch.js
-    │   └── [branch-id]/
-    │       ├── warehouse/                (Godam — stock physically stored here)
-    │       │   ├── stock-list.js
-    │       │   ├── stock-transfer.js     (move stock: Branch A godam → Branch B godam)
-    │       │   └── low-stock-alerts.js
-    │       ├── sales.js
-    │       ├── purchases.js
-    │       ├── customers.js
-    │       ├── suppliers.js
-    │       ├── expenses.js
-    │       ├── cash.js
-    │       └── bank.js
-    │
-    ├── products/
-    │   ├── add-edit-product.js   (name, part number, brand, model compatibility,
-    │   │                          purchase price, wholesale price, retail price)
-    │   └── set-schemes.js
-    │
-    ├── wholesale-requests/
-    │   └── accept-reject-pending.js
-    │
-    ├── orders/
-    │   ├── retail-orders.js
-    │   └── wholesale-orders.js
-    │
-    ├── suppliers/
-    │   ├── supplier-profile.js   (contact, address, location-on-file)
-    │   └── supplier-ledger.js    (purchases, payments, outstanding, aging)
-    │
-    ├── customers/
-    │   └── customer-ledger.js    (invoices, sales, payments, returns, balance, aging)
-    │
-    ├── aging-reports/
-    │   ├── customer-receivables.js   (0–7 / 8–15 / 16–27 / 28+ days)
-    │   └── supplier-payables.js      (due / overdue / days outstanding)
-    │
-    ├── reports/
-    │   ├── sales-reports.js      (daily, monthly, branch-wise, product-wise, customer-wise)
-    │   ├── purchase-report.js
-    │   ├── stock-report.js
-    │   ├── profit-loss.js
-    │   ├── cash-report.js
-    │   ├── expense-report.js
-    │   ├── payment-report.js
-    │   └── export-excel-pdf.js
-    │
-    ├── whatsapp-integration/
-    │   └── notifications.js      (order confirmation, status updates → customer + admin)
-    │
-    └── ai-search/
-        └── product-search.js     (natural language → matching products; scope TBD)
-```
+> **Powering Millions of Rides Across Pakistan.**  
+> Sarfraz Autos is a premier wholesale distributor and retail provider of genuine motorcycle spare parts, engine components, and master carton supplies. Based in the heart of Karachi's auto markets, we supply retailers, mechanics, workshop owners, and individual riders with certified, high-grade replacement parts.
 
 ---
 
-## 2. Role Behavior Summary
+## 🏍️ Who We Are
 
-| Role | Can Upload Products? | Can Sell? | Needs Approval? | Sees Prices |
-|---|---|---|---|---|
-| **Retail Customer** | ❌ No | ❌ No (buys only) | No | Retail Price |
-| **Wholesale Customer** | ❌ No | ❌ No (buys only) | ✅ Yes, by Admin | Wholesale Price + Schemes |
-| **Admin** | ✅ Yes | — (manages everything) | — (single account) | Sees all |
+Established in Karachi's landmark auto trading hubs, **Sarfraz Autos** has grown to become a cornerstone of Pakistan's two-wheeler parts industry. We bridge the gap between world-class component manufacturers and local businesses by delivering dependable, factory-standard spare parts at genuine trade prices.
 
-> Not a marketplace (unlike Daraz/OLX) — only Admin lists products. Both customer types can only purchase.
+Whether servicing a single bike or stocking an entire dealership inventory across Pakistan, Sarfraz Autos stands for **quality authenticity, wholesale affordability, and nationwide fulfillment**.
 
 ---
 
-## 3. Branch & Warehouse (Godam) Structure
+## 📦 What We Sell
 
-Each branch is fully self-contained and includes its own **warehouse (godam)**:
+We specialize in precision-engineered components compatible with Pakistan's most popular motorcycles, including **Honda CD70, CG125, Pridor, Yamaha YBR125, Suzuki GS150, United, Super Star, and Road Prince**.
 
-```
-Branch (e.g. Branch A)
-│
-├── Warehouse / Godam         ← physical stock storage for this branch
-│   ├── Stock List
-│   ├── Minimum Stock Alerts
-│   └── Stock Transfer (to/from other branches' godams)
-│
-├── Sales
-├── Purchases
-├── Customers
-├── Suppliers
-├── Expenses
-├── Cash
-└── Bank
-```
+### 1. Complete Engine Assemblies & Core Parts
+- **Cylinder Heads & Blocks**: High-compression CD70 and CG125 complete cylinder head assemblies and precision-honed engine blocks.
+- **Piston & Ring Sets**: Standard (0.00) and oversize piston kits engineered for thermal stability and extended engine life.
+- **Crankshaft Assemblies**: Heavy-duty, balanced crankshafts designed to handle intense heat and long daily commutes.
+- **Camshafts & Rocker Arms**: Heat-treated steel valve train components for smooth timing and quiet operation.
 
-Admin can view each branch's godam individually, **or** see combined stock across all branches/godams from one dashboard.
+### 2. Transmission, Clutch & Gears
+- **Friction Clutch Plates**: High-grip Crown and OEM-grade clutch friction sets engineered for instant pickup and zero slippage.
+- **Clutch Pressure Plates & Hubs**: Precision-balanced clutch housings and pressure plates for smooth, positive shifting.
+- **Complete Gear Sets & Shift Forks**: Hardened transmission gears resistant to wear and stripping under heavy commercial loads.
 
----
+### 3. Fuel & Air Systems
+- **Standard & Performance Carburetors**: Japanese-spec tuned carburetors delivering optimal air-fuel mixture, easy cold starting, and fuel economy.
+- **Intake Manifolds & Carb Rebuild Kits**: Precision-molded manifolds, float needles, jets, and intake gaskets.
 
-## 4. Core Workflows
+### 4. Gaskets, Seals & Service Kits
+- **Complete Engine Overhaul Sets**: Non-asbestos, oil-resistant full engine gasket packs.
+- **High-Pressure Oil Seals & O-Rings**: Heat-resistant rubber seals preventing engine oil and fork fluid leaks.
 
-### Retail Flow
-```
-Home → Retail Shop → Browse Products → Add to Cart → Checkout
-     → Order Placed → Status Tracking → WhatsApp Confirmation
-```
-
-### Wholesale Flow
-```
-Home → Wholesale Login → (First time?) → Registration Form
-     → Status: Pending → Admin Reviews → Accept / Reject
-     → (If Accepted) Login → Dashboard → Wholesale Prices + Schemes
-     → Quick Order / Cart → Checkout → Ledger Updated → WhatsApp Confirmation
-```
-
-### Admin Flow
-```
-Home → Admin Login → Dashboard
-     → Manage Products → Manage Branches & Godams
-     → Approve/Reject Wholesale Requests
-     → Track Orders (Retail + Wholesale separately)
-     → Manage Customer & Supplier Ledgers
-     → View Aging Reports
-     → Generate Reports (Excel/PDF export)
-```
+### 5. Wheel, Suspension & Chassis
+- **Alloy Wheel Rims & Hubs**: Impact-resistant wheel rims and heavy-duty front/rear hubs.
+- **Shock Absorbers & Front Forks**: Hydraulic suspension assemblies tuned for rough road conditions.
+- **Brake Shoes & Drum Assemblies**: High-friction, asbestos-free brake shoes for maximum stopping power.
 
 ---
 
-## 5. Key Business Rules
+## 🤝 Wholesale & B2B Dealership Solutions
 
-- **Schemes**: e.g. "10+1" = buy 10 units, get 1 free — set by Admin per product, auto-applied at checkout.
-- **Ledger (Khata)**: tracks Debit (customer buys → owes more) vs Credit (customer pays → owes less), running balance per customer/supplier.
-- **Aging Reports**: shows how many days a payment has been outstanding (0–7 / 8–15 / 16–27 / 28+ days) for customers, and due/overdue days for suppliers.
-- **Supplier Location**: stored as address/location on file (one-time capture, like a location-permission popup) — **not** continuous live GPS tracking.
-- **Payments**: Phase 1 is manual entry only (cash/bank/cheque) — online gateway (JazzCash/Easypaisa) blocked for now due to merchant account approval difficulty for small businesses.
-- **WhatsApp**: via official Business API (Twilio/Gupshup/Wati) — has its own separate recurring monthly cost, not included in dev fee.
-- **Admin Access**: single shared login only — no separate staff roles (Branch Manager, Sales Staff, etc.) in this scope.
+For auto parts shops, fleet operators, and regional distributors, Sarfraz Autos offers a dedicated B2B trade experience:
 
----
-
-## 6. Open Items to Confirm with Client
-
-- [ ] AI search — get 2–3 real example queries from client before building
-- [ ] WhatsApp API provider — which one, who pays the monthly subscription
-- [ ] Does retail registration also need admin approval, or wholesale only?
-- [ ] Existing product data to migrate, or starting fresh?
-- [ ] Branding assets (logo, colors, reference content)
+- **Master Carton Pricing**: Deep volume discounts on factory-sealed master cartons.
+- **Trade Incentive Schemes**: Special promotions (e.g., Buy 10 Cartons Get 1 Free) automatically credited to dealer accounts.
+- **Digital Account Ledger**: Real-time access to commercial billing, payment history, and credit terms.
+- **Direct Freight Dispatch**: Rapid cargo bilty and dispatch services to Lahore, Faisalabad, Rawalpindi, Multan, Peshawar, Quetta, and across Sindh and Punjab.
 
 ---
 
-## 7. Phases (from Proposal)
+## 🛒 Retail Counter & Direct Delivery
 
-| Phase | Scope | Timeline |
-|---|---|---|
-| Phase 1 | Core website + retail/wholesale ordering + basic admin | 1–2 weeks |
-| Phase 2 | Multi-branch (incl. godam), ledger, aging reports, full reporting | 2–3 weeks |
-| Phase 3 | WhatsApp API, AI search, testing, handover | 1–2 weeks |
+For riders, mechanics, and individual bike owners:
+- **100% Genuine Guarantee**: Every component passes stringent inspection to protect against counterfeit copies.
+- **Transparent Prices**: Real-time counter prices without unfair market markups.
+- **Fast City Delivery & Store Pickup**: Available for same-day pickup across Karachi branches or fast courier dispatch to your doorstep.
 
-**Total: 5–7 weeks**
+---
 
+## 🏆 Why Choose Sarfraz Autos?
 
-===========
+| Benefit | What It Means for You |
+| :--- | :--- |
+| **Authentic Brands** | Official stockist of Crown, Lifan, Keihin, and Sarfraz Genuine certified parts. |
+| **Direct Trade Pricing** | Eliminating unnecessary middlemen to deliver the lowest per-unit carton rates. |
+| **Complete Stock Availability** | Over 5,000+ ready SKUs available on-demand in our central warehouses. |
+| **Dedicated Business Support** | Assigned sales officers for wholesale dealers to facilitate quick orders and inquiries. |
+
+---
+
+## 📍 Visit Our Branches
+
+- **Main Wholesale Depot**: Aurangzeb Auto Market, M.A. Jinnah Road, Karachi
+- **Central Retail Counter**: Ranchore Line Auto Parts Market, Karachi
+
+**Contact & Inquiries:**  
+- **Email**: dealer@sarfrazautos.com / support@sarfrazautos.com  
+- **Wholesale Support**: Available via verified Dealer Portal & WhatsApp inquiries
