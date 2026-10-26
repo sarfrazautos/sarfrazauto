@@ -5,11 +5,13 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   LuCheck,
+  LuGift,
   LuHeart,
   LuHouse,
   LuRotateCcw,
   LuShare2,
   LuShoppingCart,
+  LuSparkles,
   LuStar,
   LuTruck,
 } from "react-icons/lu";
@@ -223,6 +225,12 @@ function ProductOverviewContent({
               </div>
 
               <div className="relative flex-1 aspect-square sm:aspect-auto sm:min-h-[580px] rounded-3xl bg-[#f5f5f7] p-8 sm:p-12 flex items-center justify-center overflow-hidden">
+                {product.scheme && (
+                  <div className="absolute top-4 left-4 z-10 inline-flex items-center gap-1.5 bg-emerald-600 text-white text-xs font-semibold px-3 py-1.5 rounded-full shadow-xs">
+                    <LuSparkles className="size-3.5" />
+                    <span>Scheme: Buy {product.scheme.buyQty} + {product.scheme.freeQty} Free</span>
+                  </div>
+                )}
                 <img
                   src={currentMainImage}
                   alt={product.name}
@@ -254,7 +262,7 @@ function ProductOverviewContent({
                   {product.name}
                 </h1>
 
-                <div className="flex items-center gap-3 mt-3">
+                <div className="flex flex-wrap items-center gap-3 mt-3">
                   <div className="flex items-center gap-1 text-amber-500">
                     <LuStar className="size-4 fill-amber-500 stroke-amber-500" />
                     <span className="text-xs font-semibold text-neutral-900 ml-1">
@@ -284,6 +292,16 @@ function ProductOverviewContent({
                       In Stock
                     </span>
                   )}
+
+                  {product.scheme && (
+                    <>
+                      <span className="text-xs font-medium text-neutral-400">&bull;</span>
+                      <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                        <LuSparkles className="size-3" />
+                        Buy {product.scheme.buyQty} + {product.scheme.freeQty} Free
+                      </span>
+                    </>
+                  )}
                 </div>
               </div>
 
@@ -302,6 +320,40 @@ function ProductOverviewContent({
                   </span>
                 )}
               </div>
+
+              {product.scheme && (
+                <div className="rounded-xl border border-emerald-200 bg-emerald-50/70 p-4 space-y-2.5">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <span className="flex size-7 items-center justify-center rounded-lg bg-emerald-600 text-white shrink-0">
+                        <LuGift className="size-4" />
+                      </span>
+                      <div>
+                        <h4 className="text-sm font-semibold text-neutral-900 leading-tight">
+                          Trade Scheme Active
+                        </h4>
+                        <p className="text-xs text-neutral-600">
+                          Authorized promotional deal for wholesale orders
+                        </p>
+                      </div>
+                    </div>
+                    <Badge variant="outline" className="bg-emerald-100 text-emerald-800 border-emerald-300 text-xs font-semibold shrink-0">
+                      Buy {product.scheme.buyQty} + {product.scheme.freeQty} Free
+                    </Badge>
+                  </div>
+
+                  <div className="pt-2 border-t border-emerald-200/70 flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 text-xs">
+                    <span className="text-neutral-700">
+                      Purchase <span className="font-semibold text-neutral-900">{product.scheme.buyQty} cartons</span> and get <span className="font-semibold text-emerald-700">{product.scheme.freeQty} carton FREE</span>
+                    </span>
+                    {product.price > 0 && (
+                      <span className="text-emerald-800 font-semibold whitespace-nowrap">
+                        Save Rs. {(Number(product.price) * Number(product.scheme.freeQty)).toLocaleString()}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
 
               <p className="text-sm text-neutral-600 leading-relaxed">
                 {product.description ||

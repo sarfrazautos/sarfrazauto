@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { db } from "@/lib/db"
 import { products } from "@/db/schema/products"
+import { schemes } from "@/db/schema/schemes"
 import { eq, ilike, and, desc, count } from "drizzle-orm"
 import { createSlug } from "@/lib/slug"
 
@@ -56,9 +57,30 @@ export async function GET(req: Request) {
       .limit(limit)
       .offset(offset)
 
+    const activeSchemes = await db
+      .select()
+      .from(schemes)
+      .where(eq(schemes.status, "Active"))
+
+    const schemeMap = new Map()
+    for (const s of activeSchemes) {
+      schemeMap.set(s.productId.toString(), {
+        id: s.id,
+        buyQty: s.buyQty,
+        freeQty: s.freeQty,
+        status: s.status,
+        title: `Buy ${s.buyQty} + ${s.freeQty} Free`,
+      })
+    }
+
+    const itemsWithScheme = items.map((p) => ({
+      ...p,
+      scheme: schemeMap.get(p.id.toString()) || null,
+    }))
+
     return NextResponse.json({
       success: true,
-      products: items,
+      products: itemsWithScheme,
       stats: {
         total: Number(allCountRow?.count || 0),
         retail: Number(retailCountRow?.count || 0),

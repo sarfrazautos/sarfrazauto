@@ -174,11 +174,15 @@ export function WholesaleCatalog({
                     href={productHref}
                     className="relative aspect-square w-full rounded-2xl bg-[#f4f4f5] overflow-hidden p-6 flex items-center justify-center transition-all duration-300 group-hover:bg-[#ebebee]"
                   >
-                    {product.badge && (
+                    {product.scheme ? (
+                      <span className="absolute top-3.5 left-3.5 text-xs font-semibold px-2.5 py-0.5 rounded-full z-10 bg-emerald-600 text-white shadow-xs">
+                        Buy {product.scheme.buyQty}+{product.scheme.freeQty} Free
+                      </span>
+                    ) : product.badge ? (
                       <span className="absolute top-3.5 left-3.5 text-xs font-semibold px-2.5 py-0.5 rounded-full z-10 bg-red-100 text-red-600">
                         {product.badge}
                       </span>
-                    )}
+                    ) : null}
                     <img
                       src={primaryImage}
                       alt={product.name}

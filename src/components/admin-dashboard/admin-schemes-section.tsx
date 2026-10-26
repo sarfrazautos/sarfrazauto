@@ -370,11 +370,11 @@ export function AdminSchemesSection() {
         <Card className="rounded-2xl border bg-white p-5 shadow-2xs">
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-neutral-500">Active Schemes</span>
-            <div className="p-2 rounded-xl bg-red-50 text-red-600">
+            <div className="p-2 rounded-xl bg-emerald-50 text-emerald-600">
               <Sparkles className="size-4" />
             </div>
           </div>
-          <p className="text-2xl font-bold text-red-600 mt-3">{activeSchemesCount}</p>
+          <p className="text-2xl font-bold text-emerald-700 mt-3">{activeSchemesCount}</p>
           <span className="text-[11px] text-emerald-600 font-medium mt-1 inline-block">
             Live on wholesale portal
           </span>
@@ -387,7 +387,7 @@ export function AdminSchemesSection() {
               <PauseCircle className="size-4" />
             </div>
           </div>
-          <p className="text-2xl font-bold text-neutral-900 mt-3">{pausedSchemesCount}</p>
+          <p className="text-2xl font-bold text-amber-700 mt-3">{pausedSchemesCount}</p>
           <span className="text-[11px] text-amber-600 font-medium mt-1 inline-block">
             Temporarily paused offers
           </span>
@@ -551,21 +551,17 @@ export function AdminSchemesSection() {
                               size="sm"
                               variant="outline"
                               onClick={() => togglePauseScheme(p.id)}
-                              className={`h-7 px-2.5 text-xs cursor-pointer gap-1 ${
-                                p.schemeStatus === "Active"
-                                  ? "text-amber-700 border-amber-200 hover:bg-amber-50"
-                                  : "text-emerald-700 border-emerald-200 hover:bg-emerald-50"
-                              }`}
+                              className="h-7 px-2.5 text-xs text-neutral-700 hover:text-neutral-900 border-neutral-200 hover:bg-neutral-50 cursor-pointer gap-1"
                             >
                               {p.schemeStatus === "Active" ? (
                                 <>
-                                  <PauseCircle className="size-3" />
-                                  <span>Pause Scheme</span>
+                                  <PauseCircle className="size-3 text-neutral-500" />
+                                  <span>Pause</span>
                                 </>
                               ) : (
                                 <>
-                                  <PlayCircle className="size-3" />
-                                  <span>Activate Scheme</span>
+                                  <PlayCircle className="size-3 text-emerald-600" />
+                                  <span>Resume</span>
                                 </>
                               )}
                             </Button>

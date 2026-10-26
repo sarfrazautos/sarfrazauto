@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { db } from "@/lib/db"
 import { products } from "@/db/schema/products"
+import { schemes } from "@/db/schema/schemes"
 import { eq, or, and, ne } from "drizzle-orm"
 import { createSlug } from "@/lib/slug"
 
@@ -37,7 +38,31 @@ export async function GET(
       )
     }
 
-    return NextResponse.json({ success: true, product })
+    const [activeScheme] = await db
+      .select()
+      .from(schemes)
+      .where(
+        and(
+          eq(schemes.productId, product.id.toString()),
+          eq(schemes.status, "Active")
+        )
+      )
+      .limit(1)
+
+    const productWithScheme = {
+      ...product,
+      scheme: activeScheme
+        ? {
+            id: activeScheme.id,
+            buyQty: activeScheme.buyQty,
+            freeQty: activeScheme.freeQty,
+            status: activeScheme.status,
+            title: `Buy ${activeScheme.buyQty} + ${activeScheme.freeQty} Free`,
+          }
+        : null,
+    }
+
+    return NextResponse.json({ success: true, product: productWithScheme })
   } catch (error: any) {
     return NextResponse.json(
       { success: false, error: error.message || "Failed to fetch product" },
