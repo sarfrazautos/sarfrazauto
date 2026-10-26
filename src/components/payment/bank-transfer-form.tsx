@@ -1,10 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { AlertCircle, Check, Copy, UploadCloud, X } from "lucide-react";
+import { AlertCircle, Check, Copy, Loader2, UploadCloud, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
+import { compressImage, formatFileSize } from "@/lib/image-compressor";
 
 const bankAccounts = [
   {
@@ -59,6 +60,8 @@ export function BankTransferForm({
   const [selectedBankId, setSelectedBankId] = useState("meezan");
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const [selectedFileName, setSelectedFileName] = useState<string | null>(null);
+  const [fileSavings, setFileSavings] = useState<string | null>(null);
+  const [isCompressing, setIsCompressing] = useState(false);
 
   const currentBank = bankAccounts.find((b) => b.id === selectedBankId) || bankAccounts[0];
 
@@ -70,14 +73,38 @@ export function BankTransferForm({
     }
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] || null;
-    setSelectedFileName(file ? file.name : null);
-    onProofChange?.(file);
+    if (!file) return;
+
+    if (file.type.startsWith("image/")) {
+      try {
+        setIsCompressing(true);
+        const res = await compressImage(file, { maxSizeMB: 0.15, maxWidthOrHeight: 1200 });
+        setSelectedFileName(res.file.name);
+        if (res.savedPercent > 0) {
+          setFileSavings(`${formatFileSize(res.compressedSize)} (-${res.savedPercent}%)`);
+        } else {
+          setFileSavings(formatFileSize(res.compressedSize));
+        }
+        onProofChange?.(res.file);
+      } catch {
+        setSelectedFileName(file.name);
+        setFileSavings(null);
+        onProofChange?.(file);
+      } finally {
+        setIsCompressing(false);
+      }
+    } else {
+      setSelectedFileName(file.name);
+      setFileSavings(null);
+      onProofChange?.(file);
+    }
   };
 
   const handleRemoveFile = () => {
     setSelectedFileName(null);
+    setFileSavings(null);
     onProofChange?.(null);
   };
 
@@ -207,13 +234,25 @@ export function BankTransferForm({
             Upload Transfer Screenshot / Proof
           </Label>
 
-          {selectedFileName ? (
+          {isCompressing ? (
+            <div className="flex items-center justify-center gap-2 p-5 rounded-2xl border border-emerald-200 bg-emerald-50/50 text-xs font-medium text-emerald-800">
+              <Loader2 className="size-4 animate-spin text-emerald-600" />
+              <span>Optimizing screenshot for fast submission...</span>
+            </div>
+          ) : selectedFileName ? (
             <div className="flex items-center justify-between p-3.5 rounded-xl border border-emerald-200 bg-emerald-50/50">
               <div className="flex items-center gap-2.5 min-w-0">
                 <Check className="size-4 text-emerald-600 shrink-0" />
-                <span className="text-xs font-medium text-emerald-900 truncate">
-                  {selectedFileName}
-                </span>
+                <div className="min-w-0 flex items-center gap-2">
+                  <span className="text-xs font-medium text-emerald-900 truncate">
+                    {selectedFileName}
+                  </span>
+                  {fileSavings && (
+                    <span className="text-[10px] bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded font-medium shrink-0">
+                      {fileSavings}
+                    </span>
+                  )}
+                </div>
               </div>
               <button
                 type="button"

@@ -1,16 +1,21 @@
 "use client"
 
 import { useState, useRef } from "react"
-import { Upload, X, Star, Plus } from "lucide-react"
+import { Upload, X, Star, Plus, Loader2, Sparkles } from "lucide-react"
+import { toast } from "sonner"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { compressImages, formatFileSize } from "@/lib/image-compressor"
 
 export interface UploadedProductImage {
   id: string
   url: string
   name: string
   file?: File
+  originalSize?: number
+  compressedSize?: number
+  savedPercent?: number
 }
 
 export function AdminProductImageUploader({
@@ -30,6 +35,8 @@ export function AdminProductImageUploader({
 }) {
   const [internalImages, setInternalImages] = useState<UploadedProductImage[]>(() => initialImages || [])
   const [internalMainIndex, setInternalMainIndex] = useState(initialMainIndex)
+  const [isCompressing, setIsCompressing] = useState(false)
+  const [compressionProgress, setCompressionProgress] = useState("")
   const fileInputRef = useRef<HTMLInputElement | null>(null)
 
   const isControlled = controlledImages !== undefined
@@ -46,30 +53,42 @@ export function AdminProductImageUploader({
     }
   }
 
-  const handleFiles = (files: FileList | null) => {
+  const handleFiles = async (files: FileList | null) => {
     if (!files || files.length === 0) return
 
     const fileArray = Array.from(files)
-    const newItems: UploadedProductImage[] = []
-    let processed = 0
+    setIsCompressing(true)
+    setCompressionProgress(`Optimizing ${fileArray.length} ${fileArray.length === 1 ? "image" : "images"}...`)
 
-    fileArray.forEach((file) => {
-      const reader = new FileReader()
-      reader.onloadend = () => {
-        newItems.push({
-          id: `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
-          url: reader.result as string,
-          name: file.name,
-          file,
-        })
-        processed++
-        if (processed === fileArray.length) {
-          const updated = [...images, ...newItems]
-          updateState(updated, mainIndex)
-        }
+    try {
+      const compressedResults = await compressImages(fileArray, (curr, total) => {
+        setCompressionProgress(`Compressing ${curr} of ${total}...`)
+      })
+
+      const newItems: UploadedProductImage[] = compressedResults.map((res) => ({
+        id: `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+        url: res.previewUrl,
+        name: res.file.name,
+        file: res.file,
+        originalSize: res.originalSize,
+        compressedSize: res.compressedSize,
+        savedPercent: res.savedPercent,
+      }))
+
+      const updated = [...images, ...newItems]
+      updateState(updated, mainIndex)
+
+      const totalOrig = compressedResults.reduce((sum, item) => sum + item.originalSize, 0)
+      const totalComp = compressedResults.reduce((sum, item) => sum + item.compressedSize, 0)
+      if (totalOrig > totalComp) {
+        toast.success(`Optimized ${newItems.length} images (saved ${formatFileSize(totalOrig - totalComp)})`)
       }
-      reader.readAsDataURL(file)
-    })
+    } catch {
+      toast.error("Failed to compress images")
+    } finally {
+      setIsCompressing(false)
+      setCompressionProgress("")
+    }
   }
 
   const handleSetMain = (index: number) => {
@@ -93,10 +112,18 @@ export function AdminProductImageUploader({
     <Card className="border-neutral-200 shadow-xs">
       <CardHeader className="p-4 pb-3">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-sm font-semibold text-neutral-900">
-            Product Images
-          </CardTitle>
-          {images.length > 0 && (
+          <div className="flex items-center gap-2">
+            <CardTitle className="text-sm font-semibold text-neutral-900">
+              Product Images
+            </CardTitle>
+            {isCompressing && (
+              <div className="flex items-center gap-1.5 text-xs text-emerald-600 font-medium">
+                <Loader2 className="size-3 animate-spin" />
+                <span>{compressionProgress}</span>
+              </div>
+            )}
+          </div>
+          {images.length > 0 && !isCompressing && (
             <Badge variant="outline" className="text-[11px] font-normal border-neutral-200 text-neutral-600 bg-neutral-50">
               {images.length} {images.length === 1 ? "Image" : "Images"}
             </Badge>
@@ -113,7 +140,7 @@ export function AdminProductImageUploader({
           type="file"
           accept="image/*"
           multiple
-          disabled={disabled}
+          disabled={disabled || isCompressing}
           onChange={(e) => {
             handleFiles(e.target.files)
             e.target.value = ""
@@ -124,27 +151,34 @@ export function AdminProductImageUploader({
         {images.length === 0 ? (
           <div
             onClick={() => {
-              if (!disabled) fileInputRef.current?.click()
+              if (!disabled && !isCompressing) fileInputRef.current?.click()
             }}
             className={`border-2 border-dashed border-neutral-200 rounded-xl aspect-square flex flex-col items-center justify-center gap-3 relative overflow-hidden p-4 text-center ${
-              disabled ? "opacity-60 cursor-not-allowed" : "cursor-pointer hover:border-neutral-400 hover:bg-neutral-50/50 transition-colors"
+              disabled || isCompressing
+                ? "opacity-60 cursor-not-allowed"
+                : "cursor-pointer hover:border-neutral-400 hover:bg-neutral-50/50 transition-colors"
             }`}
           >
             <div className="size-12 rounded-full bg-neutral-100 flex items-center justify-center text-neutral-500">
-              <Upload className="size-5" />
+              {isCompressing ? (
+                <Loader2 className="size-5 animate-spin text-emerald-600" />
+              ) : (
+                <Upload className="size-5" />
+              )}
             </div>
             <div>
               <p className="text-xs font-semibold text-neutral-800">
-                Click to upload multiple images
+                {isCompressing ? compressionProgress : "Click to upload multiple images"}
               </p>
               <p className="text-[11px] text-neutral-400 mt-1">
-                Select one or multiple photos (PNG, JPG, WEBP up to 5MB)
+                Images are automatically optimized and compressed to WebP
               </p>
             </div>
             <Button
               type="button"
               variant="outline"
               size="sm"
+              disabled={isCompressing}
               className="h-8 text-xs pointer-events-none"
             >
               Choose from Storage
@@ -164,6 +198,16 @@ export function AdminProductImageUploader({
                   Main Image
                 </Badge>
               </div>
+
+              {activeMainImage.compressedSize && (
+                <div className="absolute bottom-2 left-2 z-10">
+                  <span className="bg-emerald-950/80 backdrop-blur-xs text-emerald-300 text-[10px] font-medium px-2 py-0.5 rounded-md flex items-center gap-1 border border-emerald-500/20">
+                    <Sparkles className="size-3 text-emerald-400" />
+                    {formatFileSize(activeMainImage.compressedSize)} (-{activeMainImage.savedPercent}%)
+                  </span>
+                </div>
+              )}
+
               <button
                 type="button"
                 onClick={() => handleRemove(mainIndex)}
@@ -211,6 +255,12 @@ export function AdminProductImageUploader({
                         </div>
                       )}
 
+                      {img.compressedSize && (
+                        <span className="absolute bottom-1 right-1 bg-black/75 text-emerald-300 text-[8px] font-medium px-1 py-0.5 rounded leading-none">
+                          {formatFileSize(img.compressedSize)}
+                        </span>
+                      )}
+
                       <button
                         type="button"
                         onClick={(e) => {
@@ -228,12 +278,19 @@ export function AdminProductImageUploader({
 
                 <button
                   type="button"
+                  disabled={isCompressing}
                   onClick={() => fileInputRef.current?.click()}
                   className="aspect-square rounded-lg border-2 border-dashed border-neutral-200 hover:border-neutral-400 hover:bg-neutral-50 flex flex-col items-center justify-center text-neutral-500 hover:text-neutral-700 transition-colors cursor-pointer"
                   title="Add more images"
                 >
-                  <Plus className="size-4" />
-                  <span className="text-[9px] font-medium mt-0.5">Add</span>
+                  {isCompressing ? (
+                    <Loader2 className="size-4 animate-spin text-neutral-500" />
+                  ) : (
+                    <>
+                      <Plus className="size-4" />
+                      <span className="text-[9px] font-medium mt-0.5">Add</span>
+                    </>
+                  )}
                 </button>
               </div>
             </div>

@@ -1,6 +1,15 @@
 export async function uploadProductImage(file: File) {
+  let fileToUpload = file
+  if (typeof window !== "undefined" && file.type?.startsWith("image/") && file.size > 200 * 1024) {
+    try {
+      const { compressImage } = await import("@/lib/image-compressor")
+      const res = await compressImage(file)
+      fileToUpload = res.file
+    } catch {}
+  }
+
   const formData = new FormData()
-  formData.append("file", file)
+  formData.append("file", fileToUpload)
 
   const res = await fetch("/api/upload", {
     method: "POST",
