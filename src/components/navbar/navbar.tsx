@@ -16,6 +16,7 @@ import NavbarSearch from "@/components/navbar/navbar-search";
 import TopTicker from "@/components/navbar/top-ticker";
 import SecondaryNavbar from "@/components/navbar/secondary-navbar";
 import Link from "next/link";
+import { useSession } from "@/lib/auth-client";
 
 export type NavLinkItem = {
   title: string;
@@ -83,8 +84,28 @@ export function Navbar({ navigationData = defaultNavigation, className }: Navbar
   const [sticky, setSticky] = useState(false);
   const headerRef = useRef<HTMLElement>(null);
   const isInView = useInView(headerRef, { once: true, amount: 0.1 });
+  const { data: session } = useSession();
+  const isAuthenticated = Boolean(session?.user);
 
-  const navItems = navigationData.map((item) => ({
+  const baseNav = navigationData.map((item) => {
+    if (item.title === "Wholesale") {
+      return {
+        ...item,
+        title: isAuthenticated ? "Wholesale Catalog" : "Wholesale (Dealers)",
+        href: isAuthenticated ? "/wholesale" : "/signup",
+      };
+    }
+    if (item.title === "My Account") {
+      return {
+        ...item,
+        title: isAuthenticated ? "Dealer Portal" : "Dealer Login",
+        href: isAuthenticated ? "/customer-portal" : "/login",
+      };
+    }
+    return item;
+  });
+
+  const navItems = baseNav.map((item) => ({
     ...item,
     isActive:
       item.isActive !== undefined && navigationData !== defaultNavigation

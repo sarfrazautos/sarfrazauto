@@ -1,4 +1,5 @@
-import { CustomerSignupForm } from "@/components/customer-signup-form"
+import { Suspense } from "react"
+import { WholesaleSignupForm } from "@/components/wholesale-signup-form"
 import Link from "next/link"
 
 export default function SignupPage() {
@@ -12,7 +13,9 @@ export default function SignupPage() {
         </div>
         <div className="flex flex-1 items-center justify-center py-4">
           <div className="w-full max-w-md">
-            <CustomerSignupForm />
+            <Suspense fallback={<div className="w-full max-w-md animate-pulse h-96 bg-neutral-100 rounded-2xl" />}>
+              <WholesaleSignupForm />
+            </Suspense>
           </div>
         </div>
       </div>

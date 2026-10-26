@@ -33,6 +33,7 @@ const BIKES = [
 
 const CATEGORIES = [
   "All",
+  "Fuel & Oils",
   "Cylinders & Heads",
   "Engine Blocks",
   "Crankshafts",

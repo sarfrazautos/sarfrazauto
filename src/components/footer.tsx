@@ -4,12 +4,15 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { BsInstagram, BsTiktok } from "react-icons/bs";
 import { FaFacebook } from "react-icons/fa";
+import { useSession } from "@/lib/auth-client";
 
 export interface FooterProps {
   className?: string;
 }
 
 export function Footer({ className = "" }: FooterProps) {
+  const { data: session } = useSession();
+  const isAuthenticated = Boolean(session?.user);
   return (
     <footer className={cn("relative bg-[#07090e] text-zinc-300 overflow-hidden pt-16 md:pt-24 pb-8 border-t border-zinc-900", className)}>
       <div className="absolute inset-0 pointer-events-none">
@@ -77,8 +80,11 @@ export function Footer({ className = "" }: FooterProps) {
                   </Link>
                 </li>
                 <li>
-                  <Link href="/wholesale" className="text-zinc-300 hover:text-white transition-colors">
-                    Wholesale
+                  <Link
+                    href={isAuthenticated ? "/wholesale" : "/signup"}
+                    className="text-zinc-300 hover:text-white transition-colors"
+                  >
+                    {isAuthenticated ? "Wholesale Portal" : "Dealer Registration"}
                   </Link>
                 </li>
                 <li>

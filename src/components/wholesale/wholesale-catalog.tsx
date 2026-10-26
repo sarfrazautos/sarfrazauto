@@ -11,11 +11,28 @@ import { Button } from "@/components/ui/button";
 import {
   Pagination,
   PaginationContent,
+  PaginationEllipsis,
   PaginationItem,
   PaginationLink,
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+
+function getPaginationItems(current: number, total: number) {
+  if (total <= 7) {
+    return Array.from({ length: total }, (_, i) => i + 1);
+  }
+
+  if (current <= 4) {
+    return [1, 2, 3, 4, 5, "ellipsis-end", total];
+  }
+
+  if (current >= total - 3) {
+    return [1, "ellipsis-start", total - 4, total - 3, total - 2, total - 1, total];
+  }
+
+  return [1, "ellipsis-start", current - 1, current, current + 1, "ellipsis-end", total];
+}
 import { getProducts } from "@/lib/api/products";
 import { useCartStore } from "@/lib/store/cart-store";
 
@@ -264,25 +281,33 @@ export function WholesaleCatalog({
                     className="rounded-full hover:bg-neutral-100 cursor-pointer text-xs"
                   />
                 </PaginationItem>
-                {Array.from({ length: totalPages }).map((_, idx) => {
-                  const page = idx + 1;
+                {getPaginationItems(currentPage, totalPages).map((item, idx) => {
+                  if (typeof item === "string") {
+                    return (
+                      <PaginationItem key={`${item}-${idx}`}>
+                        <PaginationEllipsis />
+                      </PaginationItem>
+                    );
+                  }
+
+                  const isActive = currentPage === item;
                   return (
-                    <PaginationItem key={page}>
+                    <PaginationItem key={item}>
                       <PaginationLink
                         href="#"
                         onClick={(e) => {
                           e.preventDefault();
-                          if (onPageChange) onPageChange(page);
+                          if (onPageChange) onPageChange(item);
                         }}
-                        isActive={currentPage === page}
+                        isActive={isActive}
                         className={cn(
                           "size-9 rounded-full cursor-pointer text-xs transition-colors",
-                          currentPage === page
+                          isActive
                             ? "bg-neutral-900 text-white hover:bg-neutral-900"
                             : "hover:bg-neutral-100 text-neutral-700"
                         )}
                       >
-                        {page}
+                        {item}
                       </PaginationLink>
                     </PaginationItem>
                   );

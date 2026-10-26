@@ -5,12 +5,29 @@ import { motion } from "motion/react"
 import {
   Pagination,
   PaginationContent,
+  PaginationEllipsis,
   PaginationItem,
   PaginationLink,
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination"
 import { cn } from "@/lib/utils"
+
+function getPaginationItems(current: number, total: number) {
+  if (total <= 7) {
+    return Array.from({ length: total }, (_, i) => i + 1);
+  }
+
+  if (current <= 4) {
+    return [1, 2, 3, 4, 5, "ellipsis-end", total];
+  }
+
+  if (current >= total - 3) {
+    return [1, "ellipsis-start", total - 4, total - 3, total - 2, total - 1, total];
+  }
+
+  return [1, "ellipsis-start", current - 1, current, current + 1, "ellipsis-end", total];
+}
 
 export interface AdminPaginationProps {
   currentPage?: number
@@ -53,17 +70,24 @@ export function AdminPagination({
           </PaginationItem>
 
           <div className="relative flex items-center mx-1">
-            {Array.from({ length: totalPages }).map((_, i) => {
-              const page = i + 1
-              const isActive = activePage === page
+            {getPaginationItems(activePage, totalPages).map((item, idx) => {
+              if (typeof item === "string") {
+                return (
+                  <PaginationItem key={`${item}-${idx}`}>
+                    <PaginationEllipsis />
+                  </PaginationItem>
+                )
+              }
+
+              const isActive = activePage === item
               return (
-                <PaginationItem key={page} className="relative">
+                <PaginationItem key={item} className="relative">
                   <PaginationLink
                     href="#"
                     isActive={isActive}
                     onClick={(e) => {
                       e.preventDefault()
-                      handlePageChange(page)
+                      handlePageChange(item)
                     }}
                     className={cn(
                       "relative z-10 w-9 h-9 rounded-full border-0 transition-colors uppercase text-xs font-bold tracking-tighter cursor-pointer",
@@ -72,7 +96,7 @@ export function AdminPagination({
                         : "text-muted-foreground hover:text-foreground hover:bg-muted"
                     )}
                   >
-                    {page}
+                    {item}
                   </PaginationLink>
                   {isActive && (
                     <motion.div

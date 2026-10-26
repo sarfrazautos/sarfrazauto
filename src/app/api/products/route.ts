@@ -2,8 +2,9 @@ import { NextResponse } from "next/server"
 import { db } from "@/lib/db"
 import { products } from "@/db/schema/products"
 import { schemes } from "@/db/schema/schemes"
-import { eq, ilike, and, desc, count } from "drizzle-orm"
+import { eq, or, ilike, and, desc, count } from "drizzle-orm"
 import { createSlug } from "@/lib/slug"
+import { auth } from "@/lib/auth"
 
 export async function GET(req: Request) {
   try {
@@ -20,7 +21,38 @@ export async function GET(req: Request) {
     if (search) {
       conditions.push(ilike(products.name, `%${search}%`))
     }
-    if (type && type !== "all") {
+
+    if (type === "wholesale") {
+      let session = null
+      try {
+        session = await auth.api.getSession({ headers: req.headers })
+      } catch {}
+
+      if (!session || !session.user) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: "Authentication required to access wholesale inventory",
+            products: [],
+            pagination: { page, limit, total: 0, totalPages: 0 },
+            stats: { total: 0, retail: 0, wholesale: 0 },
+          },
+          { status: 401 }
+        )
+      }
+      conditions.push(or(eq(products.type, "wholesale"), eq(products.type, "both")))
+    } else if (type === "retail") {
+      conditions.push(or(eq(products.type, "retail"), eq(products.type, "both")))
+    } else if (!type || type === "all") {
+      let session = null
+      try {
+        session = await auth.api.getSession({ headers: req.headers })
+      } catch {}
+
+      if (!session || !session.user) {
+        conditions.push(or(eq(products.type, "retail"), eq(products.type, "both")))
+      }
+    } else {
       conditions.push(eq(products.type, type))
     }
     if (category && category !== "all") {
@@ -42,8 +74,8 @@ export async function GET(req: Request) {
       .where(whereClause)
 
     const [allCountRow] = await db.select({ count: count() }).from(products)
-    const [retailCountRow] = await db.select({ count: count() }).from(products).where(eq(products.type, "retail"))
-    const [wholesaleCountRow] = await db.select({ count: count() }).from(products).where(eq(products.type, "wholesale"))
+    const [retailCountRow] = await db.select({ count: count() }).from(products).where(or(eq(products.type, "retail"), eq(products.type, "both")))
+    const [wholesaleCountRow] = await db.select({ count: count() }).from(products).where(or(eq(products.type, "wholesale"), eq(products.type, "both")))
 
     const total = Number(totalRow?.count || 0)
     const totalPages = Math.ceil(total / limit)

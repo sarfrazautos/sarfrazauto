@@ -38,14 +38,14 @@ export default function PurchaseCtaSection() {
         </p>
         <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
           <Link
-            href="/wholesale"
+            href="/signup"
             className={cn(
               buttonVariants({ size: "lg" }),
               "w-full sm:w-auto rounded-lg bg-red-600 hover:bg-red-700 text-white font-medium px-8 h-12 text-sm md:text-base shadow-lg transition-transform hover:scale-105"
             )}
           >
             <Package className="mr-2 size-5" />
-            Wholesale Orders
+            Dealer Registration
             <ArrowRight className="ml-2 size-4" />
           </Link>
           <Link

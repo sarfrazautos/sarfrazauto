@@ -65,8 +65,13 @@ export async function proxy(request: NextRequest) {
   }
 
   const isAdminLoginPage = pathname === "/admin/login"
-  const isCustomerLoginPage = pathname === "/login"
+  const isCustomerAuthPage = pathname === "/login" || pathname === "/signup"
   const isCustomerPortal = pathname === "/customer-portal" || pathname.startsWith("/customer-portal/")
+  const isWholesaleRoute =
+    pathname === "/wholesale" ||
+    pathname.startsWith("/wholesale/") ||
+    pathname === "/wholesale-product-overview" ||
+    pathname.startsWith("/wholesale-product-overview/")
   const isAdminRoute = pathname === "/admin" || pathname.startsWith("/admin/")
 
   if (isAdminRoute) {
@@ -104,8 +109,13 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(loginUrl)
   }
 
-  if (isCustomerLoginPage && isAuthenticated) {
-    const redirectParam = request.nextUrl.searchParams.get("redirect") || "/customer-portal"
+  if (isWholesaleRoute && !isAuthenticated) {
+    const redirectUrl = new URL(`/signup?redirect=${encodeURIComponent(pathname)}`, request.url)
+    return NextResponse.redirect(redirectUrl)
+  }
+
+  if (isCustomerAuthPage && isAuthenticated) {
+    const redirectParam = request.nextUrl.searchParams.get("redirect") || "/wholesale"
     const targetUrl = new URL(redirectParam, request.url)
     return NextResponse.redirect(targetUrl)
   }
@@ -122,7 +132,12 @@ export const config = {
     "/admin/:path*",
     "/customer-portal",
     "/customer-portal/:path*",
+    "/wholesale",
+    "/wholesale/:path*",
+    "/wholesale-product-overview",
+    "/wholesale-product-overview/:path*",
     "/login",
+    "/signup",
     "/api/admin/:path*",
     "/api/customer/:path*",
     "/api/orders/:path*",

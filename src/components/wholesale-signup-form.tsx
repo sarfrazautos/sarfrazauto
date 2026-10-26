@@ -105,24 +105,24 @@ export function WholesaleSignupForm({ className = "", ...props }: { className?: 
               />
             </svg>
           </div>
-          <h2 className="text-2xl font-bold">Account Created Successfully</h2>
+          <h2 className="text-2xl font-bold">Dealer Account Created</h2>
           <p className="text-sm text-muted-foreground max-w-sm">
-            Welcome, {formData.name || "Customer"}! Your account for{" "}
+            Welcome, {formData.name || "Dealer"}! Your account for{" "}
             <span className="font-semibold text-foreground">
               {formData.shopName || "your shop"}
             </span>{" "}
-            has been registered. You can now access your Customer Portal.
+            has been registered. You can now access wholesale products and the dealer portal.
           </p>
         </div>
         <div className="flex flex-col gap-2.5">
-          <Link href="/customer-portal">
-            <Button className="w-full cursor-pointer">
-              Go to Customer Portal
+          <Link href="/wholesale">
+            <Button className="w-full cursor-pointer bg-red-600 hover:bg-red-700 text-white">
+              Explore Wholesale Catalog
             </Button>
           </Link>
-          <Link href="/checkout">
+          <Link href="/customer-portal">
             <Button variant="outline" className="w-full cursor-pointer">
-              Return to Checkout
+              Go to Dealer Portal
             </Button>
           </Link>
         </div>
@@ -139,9 +139,9 @@ export function WholesaleSignupForm({ className = "", ...props }: { className?: 
     >
       <FieldGroup>
         <div className="flex flex-col items-center gap-1 text-center">
-          <h1 className="text-2xl font-bold">Wholesale & Customer Registration</h1>
+          <h1 className="text-2xl font-bold">Dealer Account Registration</h1>
           <p className="text-sm text-balance text-muted-foreground">
-            Create your account to access wholesale prices and track all your orders
+            Register your dealership to access wholesale prices, master cartons, and dealer orders
           </p>
         </div>
 
@@ -304,13 +304,13 @@ export function WholesaleSignupForm({ className = "", ...props }: { className?: 
                 Creating Account...
               </>
             ) : (
-              "Create Account"
+              "Register Dealer Account"
             )}
           </Button>
         </Field>
 
         <FieldDescription className="text-center">
-          Already have an account?{" "}
+          Already have a dealer account?{" "}
           <Link href="/login" className="underline underline-offset-4 font-medium">
             Log in
           </Link>

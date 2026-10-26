@@ -147,18 +147,27 @@ function ProductOverviewContent({
       <section className={cn("w-full bg-white py-20 text-center", className)}>
         <div className="max-w-md mx-auto px-4">
           <h2 className="text-xl font-bold text-neutral-900">
-            {isWholesale ? "Wholesale Product Not Found" : "Product Not Found"}
+            {isWholesale ? "Wholesale Dealer Access Required" : "Product Not Found"}
           </h2>
           <p className="text-sm text-neutral-500 mt-2">
             {isWholesale
-              ? "The wholesale master carton you are looking for is either unavailable or has been removed."
+              ? "Master carton specifications, carton pricing, and trade schemes are exclusive to registered dealership partners."
               : "The spare part you are looking for is either unavailable or has been removed."}
           </p>
-          <Link href={isWholesale ? "/wholesale" : "/retail"}>
-            <Button className="mt-6 bg-red-600 hover:bg-red-700 text-white text-xs">
-              {isWholesale ? "Back to Wholesale Shop" : "Back to Retail Shop"}
-            </Button>
-          </Link>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mt-6">
+            <Link href={isWholesale ? "/signup" : "/retail"} className="w-full sm:w-auto">
+              <Button className="w-full sm:w-auto bg-red-600 hover:bg-red-700 text-white text-xs h-10 px-6 cursor-pointer">
+                {isWholesale ? "Register as Dealer" : "Back to Retail Shop"}
+              </Button>
+            </Link>
+            {isWholesale && (
+              <Link href="/login" className="w-full sm:w-auto">
+                <Button variant="outline" className="w-full sm:w-auto text-xs h-10 px-6 cursor-pointer">
+                  Dealer Login
+                </Button>
+              </Link>
+            )}
+          </div>
         </div>
       </section>
     );

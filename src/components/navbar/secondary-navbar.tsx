@@ -2,28 +2,37 @@
 
 import Link from "next/link";
 import { LayoutGrid, Sparkles } from "lucide-react";
-
-const NAV_ITEMS = [
-  { name: "All Categories", href: "/retail", isMain: true },
-  { name: "CD 70 Parts", href: "/retail?category=cd70" },
-  { name: "CG 125 Parts", href: "/retail?category=cg125" },
-  { name: "Engine Assemblies", href: "/retail?category=engine" },
-  { name: "Carburetors", href: "/retail?category=carburetor" },
-  { name: "Shock Absorbers", href: "/retail?category=shocks" },
-  { name: "Silencers & Exhaust", href: "/retail?category=silencer" },
-  { name: "Fuel Tanks", href: "/retail?category=fuel-tank" },
-  { name: "Alloy Rims & Wheels", href: "/retail?category=wheels" },
-  { name: "Headlights & Bulbs", href: "/retail?category=headlight" },
-  { name: "Brakes & Cables", href: "/retail?category=brakes" },
-  { name: "Wholesale Bulk Orders", href: "/wholesale", isBulk: true },
-];
+import { useSession } from "@/lib/auth-client";
 
 export function SecondaryNavbar() {
+  const { data: session } = useSession();
+  const isAuthenticated = Boolean(session?.user);
+
+  const navItems = [
+    { name: "All Categories", href: "/retail", isMain: true },
+    { name: "CD 70 Parts", href: "/retail?category=cd70" },
+    { name: "CG 125 Parts", href: "/retail?category=cg125" },
+    { name: "Engine Assemblies", href: "/retail?category=engine" },
+    { name: "Carburetors", href: "/retail?category=carburetor" },
+    { name: "Shock Absorbers", href: "/retail?category=shocks" },
+    { name: "Silencers & Exhaust", href: "/retail?category=silencer" },
+    { name: "Fuel Tanks", href: "/retail?category=fuel-tank" },
+    { name: "Fuel & Oils", href: "/retail?category=fuel" },
+    { name: "Alloy Rims & Wheels", href: "/retail?category=wheels" },
+    { name: "Headlights & Bulbs", href: "/retail?category=headlight" },
+    { name: "Brakes & Cables", href: "/retail?category=brakes" },
+    {
+      name: isAuthenticated ? "Wholesale Portal" : "Wholesale (Dealers Only)",
+      href: isAuthenticated ? "/wholesale" : "/signup",
+      isBulk: true,
+    },
+  ];
+
   return (
     <nav className="w-full bg-[#f7f7f7] border-b border-neutral-200/80 select-none">
       <div className="max-w-7xl mx-auto px-4 xl:px-16 w-full">
         <div className="flex items-center gap-6 sm:gap-8 overflow-x-auto scrollbar-none py-2.5 sm:py-3 text-xs sm:text-[13px] font-medium text-neutral-700">
-          {NAV_ITEMS.map((item, idx) => (
+          {navItems.map((item, idx) => (
             <Link
               key={idx}
               href={item.href}

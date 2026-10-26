@@ -4,6 +4,7 @@ import { products } from "@/db/schema/products"
 import { schemes } from "@/db/schema/schemes"
 import { eq, or, and, ne } from "drizzle-orm"
 import { createSlug } from "@/lib/slug"
+import { auth } from "@/lib/auth"
 
 export async function GET(
   req: Request,
@@ -36,6 +37,20 @@ export async function GET(
         { success: false, error: "Product not found" },
         { status: 404 }
       )
+    }
+
+    if (product.type === "wholesale") {
+      let session = null
+      try {
+        session = await auth.api.getSession({ headers: req.headers })
+      } catch {}
+
+      if (!session || !session.user) {
+        return NextResponse.json(
+          { success: false, error: "Authentication required to view wholesale product" },
+          { status: 401 }
+        )
+      }
     }
 
     const [activeScheme] = await db

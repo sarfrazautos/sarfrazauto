@@ -18,7 +18,7 @@ import { AlertCircle, Loader2 } from "lucide-react"
 export function LoginForm({ className = "", ...props }: { className?: string } & React.ComponentProps<"form">) {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const redirectUrl = searchParams.get("redirect") || "/customer-portal"
+  const redirectUrl = searchParams.get("redirect") || "/wholesale"
 
   const [formData, setFormData] = useState({
     email: "",
@@ -67,9 +67,9 @@ export function LoginForm({ className = "", ...props }: { className?: string } &
     <form onSubmit={handleSubmit} className={cn("flex flex-col gap-6", className)} noValidate {...props}>
       <FieldGroup>
         <div className="flex flex-col items-center gap-1 text-center">
-          <h1 className="text-2xl font-bold">Customer Portal Login</h1>
+          <h1 className="text-2xl font-bold">Dealer Portal Login</h1>
           <p className="text-sm text-balance text-muted-foreground">
-            Enter your credentials to access your customer dashboard
+            Enter your credentials to access wholesale pricing and dealer portal
           </p>
         </div>
 
@@ -124,15 +124,15 @@ export function LoginForm({ className = "", ...props }: { className?: string } &
                 Logging in...
               </>
             ) : (
-              "Login to Customer Portal"
+              "Login to Dealer Portal"
             )}
           </Button>
         </Field>
 
         <FieldDescription className="text-center">
-          Don&apos;t have an account yet?{" "}
+          Don&apos;t have a dealer account yet?{" "}
           <Link href="/signup" className="underline underline-offset-4 font-medium">
-            Register Account
+            Register as Dealer
           </Link>
         </FieldDescription>
       </FieldGroup>
