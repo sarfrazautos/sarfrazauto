@@ -54,6 +54,8 @@ const compatibleBikeOptions = [
 ]
 
 const categoryOptions = [
+  "Tyres & Tubes",
+  "Fuel & Oils",
   "Cylinders & Heads",
   "Engine Blocks",
   "Crankshafts",
@@ -65,7 +67,6 @@ const categoryOptions = [
   "Headlights",
   "Fuel Tanks",
   "Silencers",
-  "Fuel & Oils",
   "Others",
 ]
 

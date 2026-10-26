@@ -10,6 +10,11 @@ import "swiper/css";
 
 const CATEGORIES = [
   {
+    name: "Tyres & Tubes",
+    image: "/categories/tyre.jpg",
+    href: "/retail?category=tyres",
+  },
+  {
     name: "Fuel & Oils",
     image: "/categories/fuel.jpg",
     href: "/retail?category=fuel",

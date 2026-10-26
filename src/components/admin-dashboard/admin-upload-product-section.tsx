@@ -53,6 +53,23 @@ const compatibleBikeOptions = [
   "All Models",
 ]
 
+const categoryOptions = [
+  "Tyres & Tubes",
+  "Fuel & Oils",
+  "Cylinders & Heads",
+  "Engine Blocks",
+  "Crankshafts",
+  "Clutch Plates",
+  "Carburetors",
+  "Alloy Rims & Wheels",
+  "Shock Absorbers",
+  "Backlights",
+  "Headlights",
+  "Fuel Tanks",
+  "Silencers",
+  "Others",
+]
+
 export function AdminUploadProductSection() {
   const router = useRouter()
   const queryClient = useQueryClient()
@@ -276,12 +293,11 @@ export function AdminUploadProductSection() {
                         <SelectValue placeholder="Select category..." />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="cylinders">Cylinders & Heads</SelectItem>
-                        <SelectItem value="engine">Engine Blocks</SelectItem>
-                        <SelectItem value="crankshafts">Crankshafts</SelectItem>
-                        <SelectItem value="clutch">Clutch Plates</SelectItem>
-                        <SelectItem value="carburetors">Carburetors</SelectItem>
-                        <SelectItem value="others">Others</SelectItem>
+                        {categoryOptions.map((cat) => (
+                          <SelectItem key={cat} value={cat}>
+                            {cat}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>

@@ -19,6 +19,7 @@ export function SecondaryNavbar() {
     { name: "Fuel Tanks", href: "/retail?category=fuel-tank" },
     { name: "Fuel & Oils", href: "/retail?category=fuel" },
     { name: "Alloy Rims & Wheels", href: "/retail?category=wheels" },
+    { name: "Tyres & Tubes", href: "/retail?category=tyres" },
     { name: "Headlights & Bulbs", href: "/retail?category=headlight" },
     { name: "Brakes & Cables", href: "/retail?category=brakes" },
     {

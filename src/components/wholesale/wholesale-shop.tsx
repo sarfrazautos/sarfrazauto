@@ -43,7 +43,14 @@ function WholesaleShopContent() {
       setCurrentPage(1);
     }
     if (categoryParam) {
-      setActiveCategory(categoryParam);
+      const lower = categoryParam.toLowerCase();
+      const mappedCat =
+        lower === "fuel" || lower === "fuel-and-oils" || lower === "fuel-oil"
+          ? "Fuel & Oils"
+          : lower === "tyre" || lower === "tyres" || lower === "tire" || lower === "tires"
+          ? "Tyres & Tubes"
+          : categoryParam;
+      setActiveCategory(mappedCat);
       setCurrentPage(1);
     }
   }, [brandParam, categoryParam]);
