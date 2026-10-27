@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { useSession } from "@/lib/auth-client";
 import WholesaleHero from "./wholesale-hero";
 import WholesaleCatalog from "./wholesale-catalog";
+import { normalizeCategory } from "@/lib/category-mapper";
 
 function WholesaleShopContent() {
   const { data: session, isPending } = useSession();
@@ -43,13 +44,7 @@ function WholesaleShopContent() {
       setCurrentPage(1);
     }
     if (categoryParam) {
-      const lower = categoryParam.toLowerCase();
-      const mappedCat =
-        lower === "fuel" || lower === "fuel-and-oils" || lower === "fuel-oil"
-          ? "Fuel & Oils"
-          : lower === "tyre" || lower === "tyres" || lower === "tire" || lower === "tires"
-          ? "Tyres & Tubes"
-          : categoryParam;
+      const mappedCat = normalizeCategory(categoryParam);
       setActiveCategory(mappedCat);
       setCurrentPage(1);
     }

@@ -4,6 +4,7 @@ import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import RetailHero from "./retail-hero";
 import RetailCatalog from "./retail-catalog";
+import { normalizeCategory } from "@/lib/category-mapper";
 
 function RetailShopContent() {
   const searchParams = useSearchParams();
@@ -38,13 +39,7 @@ function RetailShopContent() {
       setCurrentPage(1);
     }
     if (categoryParam) {
-      const lower = categoryParam.toLowerCase();
-      const mappedCat =
-        lower === "fuel" || lower === "fuel-and-oils" || lower === "fuel-oil"
-          ? "Fuel & Oils"
-          : lower === "tyre" || lower === "tyres" || lower === "tire" || lower === "tires"
-          ? "Tyres & Tubes"
-          : categoryParam;
+      const mappedCat = normalizeCategory(categoryParam);
       setActiveCategory(mappedCat);
       setCurrentPage(1);
     }

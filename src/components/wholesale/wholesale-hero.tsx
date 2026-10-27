@@ -14,6 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { ALL_CATEGORIES } from "@/lib/category-mapper";
 
 const BIKES = [
   { id: "all", name: "All Brands" },
@@ -31,17 +32,7 @@ const BIKES = [
   { id: "others", name: "Others" },
 ];
 
-const CATEGORIES = [
-  "All",
-  "Tyres & Tubes",
-  "Fuel & Oils",
-  "Cylinders & Heads",
-  "Engine Blocks",
-  "Crankshafts",
-  "Clutch Plates",
-  "Carburetors",
-  "Others",
-];
+const CATEGORIES = ALL_CATEGORIES;
 
 export function WholesaleHero({
   searchQuery,

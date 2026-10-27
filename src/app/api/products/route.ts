@@ -5,6 +5,7 @@ import { schemes } from "@/db/schema/schemes"
 import { eq, or, ilike, and, desc, count } from "drizzle-orm"
 import { createSlug } from "@/lib/slug"
 import { auth } from "@/lib/auth"
+import { normalizeCategory } from "@/lib/category-mapper"
 
 export async function GET(req: Request) {
   try {
@@ -61,7 +62,21 @@ export async function GET(req: Request) {
       conditions.push(eq(products.type, type))
     }
     if (category && category !== "all") {
-      conditions.push(ilike(products.category, category))
+      const lowerCat = category.toLowerCase().trim()
+      if (lowerCat === "cd70" || lowerCat === "cd-70") {
+        conditions.push(or(ilike(products.name, "%CD70%"), ilike(products.compatibleBike, "%70cc%")))
+      } else if (lowerCat === "cg125" || lowerCat === "cg-125") {
+        conditions.push(or(ilike(products.name, "%CG125%"), ilike(products.compatibleBike, "%125cc%")))
+      } else if (lowerCat === "brakes" || lowerCat === "brake") {
+        conditions.push(or(ilike(products.name, "%Brake%"), ilike(products.name, "%Cable%")))
+      } else {
+        const normalized = normalizeCategory(category)
+        if (normalized && normalized !== "All") {
+          conditions.push(ilike(products.category, normalized))
+        } else {
+          conditions.push(ilike(products.category, `%${category}%`))
+        }
+      }
     }
     if (brand && brand !== "all") {
       conditions.push(ilike(products.brand, brand))
