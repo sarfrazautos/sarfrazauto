@@ -107,7 +107,7 @@ export function PaymentSlipDialog({ payment, open, onOpenChange }: any) {
             </div>
             <div className="flex items-center gap-2 text-neutral-500 text-[11px]">
               <ArrowRightLeft className="size-3.5 text-neutral-400" />
-              <span>Beneficiary: Sarfraz Autos Wholesale (Meezan Bank Ltd)</span>
+              <span>Beneficiary: Muhammad Afraz - Sarfraz Autos (UBL)</span>
             </div>
           </div>
         </div>

@@ -11,6 +11,7 @@ import {
   LuWrench,
 } from "react-icons/lu";
 import { cn } from "@/lib/utils";
+import { WHATSAPP_DISPLAY, WHATSAPP_RAW } from "@/lib/constants";
 
 interface BranchData {
   id: string;
@@ -26,37 +27,37 @@ interface BranchData {
 
 const branches: BranchData[] = [
   {
-    id: "saddar",
-    name: "Saddar Head Office",
-    shortName: "Saddar HQ",
+    id: "branch-1",
+    name: "Taj Mehal Qasim Auto Market",
+    shortName: "Qasim Auto Market",
     city: "Karachi, Pakistan",
-    badge: "HQ",
-    address: "Shop #23, Taj Mehal Qasim Auto Market, Saddar, Karachi",
-    phone: "+92 300 1234567",
-    email: "saddar@sarfrazautos.com",
-    mapQuery: "Taj+Mehal+Qasim+Auto+Market+Saddar+Karachi",
+    badge: "Branch 1",
+    address: "Shop #23, Taj Mehal Qasim Auto Market, Karachi, Pakistan",
+    phone: WHATSAPP_DISPLAY,
+    email: "info@sarfrazautos.com",
+    mapQuery: "Taj+Mehal+Qasim+Auto+Market+Karachi",
   },
   {
-    id: "tibet",
-    name: "Tibet Centre Plaza",
-    shortName: "Tibet Centre",
+    id: "branch-2",
+    name: "Tahir Abdullah Centre",
+    shortName: "Tahir Centre",
     city: "Karachi, Pakistan",
-    badge: "Wholesale",
-    address: "Shop #12, Tibet Centre, M.A. Jinnah Road, Karachi",
-    phone: "+92 300 7654321",
-    email: "tibet@sarfrazautos.com",
-    mapQuery: "Tibet+Centre+M.A.+Jinnah+Road+Karachi",
+    badge: "Branch 2",
+    address: "Shop #3, Tahir Abdullah Centre, Taj Mehal Market, Karachi",
+    phone: WHATSAPP_DISPLAY,
+    email: "info@sarfrazautos.com",
+    mapQuery: "Tahir+Abdullah+Centre+Taj+Mehal+Market+Karachi",
   },
   {
-    id: "site",
-    name: "SITE Logistics Hub",
-    shortName: "SITE Hub",
+    id: "branch-3",
+    name: "Boharpir Taj Mehal Market",
+    shortName: "Boharpir Branch",
     city: "Karachi, Pakistan",
-    badge: "Warehouse",
-    address: "Plot 45-B, SITE Industrial Area, Karachi",
-    phone: "+92 333 1285556",
-    email: "warehouse@sarfrazautos.com",
-    mapQuery: "SITE+Industrial+Area+Karachi",
+    badge: "Branch 3",
+    address: "Shop #43, Taj Mehal Market, Shivram Dewan Mal Road, Boharpir, Karachi",
+    phone: WHATSAPP_DISPLAY,
+    email: "info@sarfrazautos.com",
+    mapQuery: "Taj+Mehal+Market+Shivram+Dewan+Mal+Road+Boharpir+Karachi",
   },
 ];
 
@@ -67,7 +68,7 @@ const inquiryCards = [
     description:
       "Interested in bulk purchasing, becoming a retailer partner, or stocking our spare parts? Let's talk.",
     actionText: "Start a partnership",
-    href: "tel:+923001234567",
+    href: `tel:+${WHATSAPP_RAW}`,
   },
   {
     icon: LuWrench,
@@ -75,7 +76,7 @@ const inquiryCards = [
     description:
       "Need help verifying engine models, cylinder kits, or finding the exact genuine motorcycle part? We're here.",
     actionText: "Inquire about parts",
-    href: "tel:+923007654321",
+    href: `tel:+${WHATSAPP_RAW}`,
   },
   {
     icon: LuMegaphone,
@@ -88,7 +89,7 @@ const inquiryCards = [
 ];
 
 export function BranchLocations({ className = "" }: { className?: string }) {
-  const [selectedId, setSelectedId] = useState("saddar");
+  const [selectedId, setSelectedId] = useState("branch-1");
 
   const currentBranch =
     branches.find((b) => b.id === selectedId) || branches[0];

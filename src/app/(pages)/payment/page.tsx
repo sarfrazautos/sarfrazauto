@@ -6,7 +6,7 @@ import Footer from "@/components/footer";
 export const metadata: Metadata = {
   title: "Payment | Sarfraz Autos",
   description:
-    "Complete payment for your motorcycle spare parts order via Meezan Bank, UBL, EasyPaisa, JazzCash, or Cash on Delivery.",
+    "Complete payment for your motorcycle spare parts order via UBL, Easypaisa, JazzCash Raast QR, or Cash on Delivery.",
 };
 
 export default function PaymentPage() {

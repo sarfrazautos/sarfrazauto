@@ -26,6 +26,7 @@ import PaymentSuccess from "./payment-success";
 
 export function PaymentSection({ className = "" }: { className?: string }) {
   const [paymentMethod, setPaymentMethod] = useState<"bank" | "cod">("bank");
+  const [selectedBankMethod, setSelectedBankMethod] = useState("UBL (United Bank)");
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [confirmedAmount, setConfirmedAmount] = useState<string>("");
@@ -89,11 +90,12 @@ export function PaymentSection({ className = "" }: { className?: string }) {
 
       const finalAmount = total;
       const customerName = info.fullName?.trim() || "Customer";
+      const finalMethod = paymentMethod === "bank" ? selectedBankMethod : "Cash on Delivery";
       const notesParts = [
         info.address ? `Address: ${info.address}` : "",
         info.apartment ? `Apartment: ${info.apartment}` : "",
         info.notes ? `Note: ${info.notes}` : "",
-        `Method: ${paymentMethod === "bank" ? "Bank Transfer" : "Cash on Delivery"}`,
+        `Method: ${finalMethod}`,
       ].filter(Boolean);
 
       await createOrder({
@@ -117,7 +119,7 @@ export function PaymentSection({ className = "" }: { className?: string }) {
             customerName,
             orderNumber: orderId,
             amount: finalAmount,
-            method: "Bank Transfer",
+            method: finalMethod,
             screenshotUrl: screenshotUrl || null,
             status: "Pending",
           });
@@ -232,10 +234,10 @@ export function PaymentSection({ className = "" }: { className?: string }) {
                     </span>
                     <div>
                       <span className="text-sm font-semibold text-foreground block">
-                        Bank Transfer / Online Transfer
+                        Bank Transfer / Mobile Wallet
                       </span>
                       <span className="text-xs text-muted-foreground">
-                        Meezan Bank, UBL, EasyPaisa, JazzCash
+                        UBL, Easypaisa, JazzCash &amp; Raast QR
                       </span>
                     </div>
                   </div>
@@ -294,6 +296,7 @@ export function PaymentSection({ className = "" }: { className?: string }) {
             {paymentMethod === "bank" ? (
               <BankTransferForm
                 hasError={hasProofError}
+                onMethodChange={setSelectedBankMethod}
                 onProofChange={(file) => {
                   setProofFile(file);
                   if (file) {

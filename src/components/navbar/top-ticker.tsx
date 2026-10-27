@@ -2,6 +2,7 @@
 
 import { motion } from "motion/react";
 import { Sparkles, Truck, ShieldCheck, PhoneCall } from "lucide-react";
+import { WHATSAPP_DISPLAY } from "@/lib/constants";
 
 const TICKER_ITEMS = [
   {
@@ -18,7 +19,7 @@ const TICKER_ITEMS = [
   },
   {
     icon: PhoneCall,
-    text: "EXPERT ASSISTANCE: Call or WhatsApp our parts specialist at +92 321 8273645",
+    text: `EXPERT ASSISTANCE: Call or WhatsApp our parts specialist at ${WHATSAPP_DISPLAY}`,
   },
 ];
 

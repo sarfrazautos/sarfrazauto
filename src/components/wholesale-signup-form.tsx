@@ -21,7 +21,8 @@ import {
 } from "@/components/ui/select"
 import Link from "next/link"
 import { authClient } from "@/lib/auth-client"
-import { AlertCircle, Loader2 } from "lucide-react"
+import { AlertCircle, Loader2, Clock, CheckCircle2, PhoneCall } from "lucide-react"
+import { WHATSAPP_RAW, WHATSAPP_DISPLAY } from "@/lib/constants"
 
 export function WholesaleSignupForm({ className = "", ...props }: { className?: string } & React.ComponentProps<"form">) {
   const [submitted, setSubmitted] = useState(false)
@@ -58,6 +59,22 @@ export function WholesaleSignupForm({ className = "", ...props }: { className?: 
     e.preventDefault()
     setError("")
 
+    if (!formData.name.trim()) {
+      setError("Please enter your full name.")
+      return
+    }
+    if (!formData.shopName.trim()) {
+      setError("Please enter your shop or workshop name.")
+      return
+    }
+    if (!formData.whatsapp.trim()) {
+      setError("Please enter your WhatsApp / mobile number.")
+      return
+    }
+    if (!formData.city.trim()) {
+      setError("Please select your city.")
+      return
+    }
     if (formData.password.length < 6) {
       setError("Password must be at least 6 characters.")
       return
@@ -69,14 +86,34 @@ export function WholesaleSignupForm({ className = "", ...props }: { className?: 
       const res = await authClient.signUp.email({
         email: formData.email.trim().toLowerCase(),
         password: formData.password,
-        name: formData.name.trim() || formData.shopName.trim() || "Customer",
-      })
+        name: formData.name.trim(),
+        phone: formData.whatsapp.trim(),
+        city: formData.city.trim(),
+        shopName: formData.shopName.trim(),
+        deliveryAddress: formData.address.trim(),
+        role: "pending_dealer",
+      } as any)
 
       if (res?.error) {
         setError(res.error.message || "Could not complete registration. Please try again.")
         setIsLoading(false)
         return
       }
+
+      await fetch("/api/dealer-requests", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          shopName: formData.shopName.trim(),
+          ownerName: formData.name.trim(),
+          email: formData.email.trim().toLowerCase(),
+          phone: formData.whatsapp.trim(),
+          city: formData.city.trim(),
+          address: formData.address.trim(),
+          status: "Pending",
+          notes: "Wholesale Portal Application",
+        }),
+      })
 
       setSubmitted(true)
       setIsLoading(false)
@@ -89,40 +126,55 @@ export function WholesaleSignupForm({ className = "", ...props }: { className?: 
   if (submitted) {
     return (
       <div className={cn("flex flex-col gap-6 text-center", className)}>
-        <div className="flex flex-col items-center gap-2">
-          <div className="flex size-12 items-center justify-center rounded-full bg-primary/10 text-primary">
-            <svg
-              className="size-6"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M5 13l4 4L19 7"
-              />
-            </svg>
+        <div className="flex flex-col items-center gap-3">
+          <div className="flex size-14 items-center justify-center rounded-2xl bg-amber-50 text-amber-600 border border-amber-200 shadow-2xs">
+            <Clock className="size-7 animate-pulse" />
           </div>
-          <h2 className="text-2xl font-bold">Dealer Account Created</h2>
-          <p className="text-sm text-muted-foreground max-w-sm">
-            Welcome, {formData.name || "Dealer"}! Your account for{" "}
-            <span className="font-semibold text-foreground">
-              {formData.shopName || "your shop"}
-            </span>{" "}
-            has been registered. You can now access wholesale products and the dealer portal.
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 border border-amber-200 text-amber-800 text-xs font-semibold">
+            <span className="size-2 rounded-full bg-amber-500 animate-ping" />
+            <span>Pending Admin Approval</span>
+          </div>
+          <h2 className="text-2xl font-bold tracking-tight text-neutral-900">
+            Dealer Application Submitted!
+          </h2>
+          <p className="text-sm text-neutral-600 max-w-md leading-relaxed">
+            Thank you, <strong className="text-neutral-900">{formData.name}</strong>! Your dealer registration for{" "}
+            <strong className="text-neutral-900">{formData.shopName}</strong> has been sent to the Sarfraz Autos admin team.
           </p>
         </div>
+
+        <div className="p-4 rounded-xl bg-neutral-50 border border-neutral-200 text-left space-y-2 text-xs text-neutral-600">
+          <div className="flex items-center gap-2 text-neutral-900 font-semibold">
+            <CheckCircle2 className="size-4 text-emerald-600" />
+            <span>Review Window: Within 24 Hours</span>
+          </div>
+          <p className="pl-6 text-neutral-500 leading-relaxed">
+            Our trade team verifies workshop credentials and city business markets. Once approved by admin, you will have instant access to the <strong>Dealer Customer Portal</strong> and <strong>Wholesale Bulk Carton Rates</strong>.
+          </p>
+        </div>
+
         <div className="flex flex-col gap-2.5">
-          <Link href="/wholesale">
-            <Button className="w-full cursor-pointer bg-red-600 hover:bg-red-700 text-white">
-              Explore Wholesale Catalog
+          <a
+            href={`https://wa.me/${WHATSAPP_RAW}?text=Hello%20Sarfraz%20Autos,%20I%20have%20submitted%20my%20wholesale%20dealer%20application%20for%20${encodeURIComponent(
+              formData.shopName
+            )}%20(${encodeURIComponent(formData.city)})%20and%20would%20like%20to%20request%20early%20verification.`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="w-full"
+          >
+            <Button className="w-full h-10 bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-xs cursor-pointer shadow-xs gap-2">
+              <PhoneCall className="size-3.5" />
+              <span>WhatsApp Admin ({WHATSAPP_DISPLAY})</span>
+            </Button>
+          </a>
+          <Link href="/retail" className="w-full">
+            <Button variant="outline" className="w-full h-10 text-xs text-neutral-700 cursor-pointer">
+              Explore Retail Counter Meanwhile
             </Button>
           </Link>
-          <Link href="/customer-portal">
-            <Button variant="outline" className="w-full cursor-pointer">
-              Go to Dealer Portal
+          <Link href="/" className="w-full">
+            <Button variant="ghost" className="w-full h-9 text-xs text-neutral-500 cursor-pointer">
+              Back to Home
             </Button>
           </Link>
         </div>

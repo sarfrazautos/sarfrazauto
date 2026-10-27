@@ -1,69 +1,73 @@
 "use client";
 
-import { useState } from "react";
-import { AlertCircle, Check, Copy, Loader2, UploadCloud, X } from "lucide-react";
+import { useState, useEffect } from "react";
+import { AlertCircle, Check, Copy, Loader2, UploadCloud, X, QrCode } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { compressImage, formatFileSize } from "@/lib/image-compressor";
 
-const bankAccounts = [
-  {
-    id: "meezan",
-    name: "Meezan Bank",
-    badge: "Most Popular",
-    title: "Sarfraz Autos",
-    accountNumber: "01020304050607",
-    iban: "PK56MEZN0001020304050607",
-    branch: "Saddar Branch Karachi (0102)",
-  },
+export const BANK_ACCOUNTS = [
   {
     id: "ubl",
     name: "UBL (United Bank)",
-    badge: "Direct Transfer",
-    title: "Sarfraz Autos",
-    accountNumber: "123456789012",
-    iban: "PK36UNIL0109001234567890",
-    branch: "M.A. Jinnah Road Karachi",
+    badge: "Official Bank Account",
+    title: "Muhammad Afraz",
+    accountNumber: "257996808",
+    iban: "PK12UNIL0109000257996808",
+    branch: "Branch# 0947, Moli Musafir Khana",
+    instructions: "Transfer to United Bank Limited via mobile banking, ATM, or over-the-counter deposit.",
+    type: "bank",
   },
   {
     id: "easypaisa",
-    name: "EasyPaisa",
-    badge: "Instant Wallet",
-    title: "Muhammad Sarfraz",
-    accountNumber: "03331285556",
-    iban: "Raast ID: 03331285556",
-    branch: "Mobile Account / Raast",
+    name: "Easypaisa",
+    badge: "Instant Mobile Wallet",
+    title: "Muhammad Afraz",
+    accountNumber: "03332624410",
+    iban: "03332624410",
+    branch: "Easypaisa Mobile Wallet",
+    instructions: "Send money via Easypaisa App or any Easypaisa Retailer shop to 03332624410.",
+    type: "wallet",
   },
   {
     id: "jazzcash",
-    name: "JazzCash",
-    badge: "Instant Wallet",
-    title: "Muhammad Sarfraz",
-    accountNumber: "03331285556",
-    iban: "Raast ID: 03331285556",
-    branch: "Mobile Account / Raast",
+    name: "JazzCash / Raast QR",
+    badge: "Till ID & Raast QR",
+    title: "SARFARAZ AUTOS",
+    accountNumber: "983205868",
+    iban: "Till ID: 983205868",
+    branch: "Till ID / Raast QR Code",
+    instructions: "Dial *786*10# and enter Till ID 983205868, or scan the official Raast QR code with any banking app.",
+    type: "qr",
+    qrImage: "/jazzcash-raast-qr.jpg",
   },
 ];
 
 export interface BankTransferFormProps {
   onProofChange?: (file: File | null) => void;
+  onMethodChange?: (methodName: string) => void;
   hasError?: boolean;
   className?: string;
 }
 
 export function BankTransferForm({
   onProofChange,
+  onMethodChange,
   hasError = false,
   className = "",
 }: BankTransferFormProps) {
-  const [selectedBankId, setSelectedBankId] = useState("meezan");
+  const [selectedBankId, setSelectedBankId] = useState("ubl");
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const [selectedFileName, setSelectedFileName] = useState<string | null>(null);
   const [fileSavings, setFileSavings] = useState<string | null>(null);
   const [isCompressing, setIsCompressing] = useState(false);
 
-  const currentBank = bankAccounts.find((b) => b.id === selectedBankId) || bankAccounts[0];
+  const currentBank = BANK_ACCOUNTS.find((b) => b.id === selectedBankId) || BANK_ACCOUNTS[0];
+
+  useEffect(() => {
+    onMethodChange?.(currentBank.name);
+  }, [selectedBankId]);
 
   const handleCopy = (text: string, key: string) => {
     if (typeof window !== "undefined") {
@@ -112,10 +116,10 @@ export function BankTransferForm({
     <div className={cn("space-y-6", className)}>
       <div className="space-y-2.5">
         <Label className="text-sm font-semibold text-foreground">
-          Select Bank or Wallet
+          Select Payment Method
         </Label>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-          {bankAccounts.map((bank) => {
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+          {BANK_ACCOUNTS.map((bank) => {
             const isSelected = selectedBankId === bank.id;
             return (
               <button
@@ -129,9 +133,12 @@ export function BankTransferForm({
                     : "border-border bg-card hover:border-neutral-300"
                 )}
               >
-                <span className="text-xs font-semibold text-foreground block">
-                  {bank.name}
-                </span>
+                <div className="flex items-center justify-between w-full">
+                  <span className="text-xs font-semibold text-foreground block">
+                    {bank.name}
+                  </span>
+                  {bank.id === "jazzcash" && <QrCode className="size-3.5 text-neutral-500" />}
+                </div>
                 <span className="text-[10px] text-muted-foreground mt-1 block">
                   {bank.badge}
                 </span>
@@ -150,9 +157,32 @@ export function BankTransferForm({
             <p className="text-xs text-muted-foreground">{currentBank.branch}</p>
           </div>
           <span className="text-[11px] font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-            Active Account
+            Verified Account
           </span>
         </div>
+
+        {currentBank.qrImage && (
+          <div className="flex flex-col sm:flex-row items-center gap-4 p-4 rounded-xl bg-amber-50/70 border border-amber-200">
+            <div className="size-36 sm:size-40 rounded-xl overflow-hidden bg-white p-1 border border-amber-300 shrink-0 shadow-2xs">
+              <img
+                src={currentBank.qrImage}
+                alt="JazzCash Raast QR Code"
+                className="w-full h-full object-contain"
+              />
+            </div>
+            <div className="text-xs text-neutral-700 space-y-1.5 text-center sm:text-left">
+              <span className="font-bold text-neutral-900 text-sm block">
+                Scan Raast QR / Pay via Till ID
+              </span>
+              <p className="text-neutral-600 leading-relaxed">
+                Scan this QR code with <strong>JazzCash, Easypaisa, or ANY Pakistani banking app</strong> using Raast P2M payment.
+              </p>
+              <div className="inline-block px-3 py-1 rounded-md bg-white border border-amber-300 font-mono text-amber-900 font-bold text-xs mt-1">
+                Dial *786*10# &bull; Till ID: 983205868
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
           <div className="p-3 rounded-xl bg-muted/40 border border-border/80">
@@ -165,8 +195,10 @@ export function BankTransferForm({
           <div className="p-3 rounded-xl bg-muted/40 border border-border/80 flex items-center justify-between gap-2">
             <div>
               <span className="text-muted-foreground block text-[11px]">
-                {currentBank.id === "easypaisa" || currentBank.id === "jazzcash"
+                {currentBank.id === "easypaisa"
                   ? "Mobile Account No."
+                  : currentBank.id === "jazzcash"
+                  ? "Till ID"
                   : "Account Number"}
               </span>
               <span className="font-semibold text-foreground text-sm tracking-wider mt-0.5 block">
@@ -197,8 +229,10 @@ export function BankTransferForm({
           <div className="sm:col-span-2 p-3 rounded-xl bg-muted/40 border border-border/80 flex items-center justify-between gap-2">
             <div className="min-w-0 flex-1">
               <span className="text-muted-foreground block text-[11px]">
-                {currentBank.id === "easypaisa" || currentBank.id === "jazzcash"
-                  ? "Raast Payment"
+                {currentBank.id === "easypaisa"
+                  ? "Raast ID (Instant Transfer)"
+                  : currentBank.id === "jazzcash"
+                  ? "USSD Till Code"
                   : "IBAN"}
               </span>
               <span className="font-semibold text-foreground text-xs sm:text-sm tracking-wider mt-0.5 block truncate">
@@ -231,7 +265,7 @@ export function BankTransferForm({
       <div id="payment-proof-section" className="space-y-4 scroll-mt-28">
         <div className="space-y-2">
           <Label htmlFor="payment-proof-input" className="text-sm font-semibold text-foreground block">
-            Upload Transfer Screenshot / Proof
+            Upload Transfer Screenshot / Receipt Proof
           </Label>
 
           {isCompressing ? (
@@ -292,7 +326,7 @@ export function BankTransferForm({
                     hasError ? "text-red-600 font-medium" : "text-muted-foreground"
                   )}
                 >
-                  PNG, JPG or PDF receipt from your bank app (Meezan, EasyPaisa, HBL, etc.)
+                  PNG, JPG or PDF receipt from your bank or wallet app (UBL, Easypaisa, JazzCash)
                 </span>
                 <input
                   type="file"

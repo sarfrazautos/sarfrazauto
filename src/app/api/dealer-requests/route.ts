@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server"
 import { db } from "@/lib/db"
 import { dealerRequests } from "@/db/schema/dealer-requests"
+import { customerPortalProfiles } from "@/db/schema/customer-portal"
+import { user } from "@/db/schema/auth"
 import { eq, ilike, and, or, desc, count } from "drizzle-orm"
 
 export async function GET(req: Request) {
@@ -91,6 +93,7 @@ export async function POST(req: Request) {
 
     const randomSuffix = Math.floor(100 + Math.random() * 900)
     const requestId = body.requestId || `REQ-${randomSuffix}`
+    const cleanEmail = body.email.trim().toLowerCase()
 
     const [created] = await db
       .insert(dealerRequests)
@@ -98,7 +101,7 @@ export async function POST(req: Request) {
         requestId,
         shopName: body.shopName.trim(),
         ownerName: body.ownerName.trim(),
-        email: body.email.trim().toLowerCase(),
+        email: cleanEmail,
         phone: body.phone.trim(),
         city: body.city.trim(),
         address: body.address ? body.address.trim() : null,
@@ -109,6 +112,37 @@ export async function POST(req: Request) {
         submittedAt: body.submittedAt ? new Date(body.submittedAt) : new Date(),
       })
       .returning()
+
+    try {
+      const [existingUser] = await db
+        .select({ id: user.id })
+        .from(user)
+        .where(eq(user.email, cleanEmail))
+        .limit(1)
+
+      const [existingProfile] = await db
+        .select({ id: customerPortalProfiles.id })
+        .from(customerPortalProfiles)
+        .where(eq(customerPortalProfiles.email, cleanEmail))
+        .limit(1)
+
+      if (!existingProfile) {
+        await db.insert(customerPortalProfiles).values({
+          userId: existingUser?.id || null,
+          businessName: body.shopName.trim(),
+          contactPerson: body.ownerName.trim(),
+          email: cleanEmail,
+          phone: body.phone.trim(),
+          shopAddress: body.address ? body.address.trim() : `${body.city.trim()}, Pakistan`,
+          preferredCity: body.city.trim(),
+        })
+      } else if (existingUser?.id) {
+        await db
+          .update(customerPortalProfiles)
+          .set({ userId: existingUser.id, updatedAt: new Date() })
+          .where(eq(customerPortalProfiles.id, existingProfile.id))
+      }
+    } catch {}
 
     return NextResponse.json(
       { success: true, request: created },

@@ -12,6 +12,7 @@ import "swiper/css";
 import "swiper/css/effect-fade";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
+import { WHATSAPP_RAW } from "@/lib/constants";
 
 const SLIDES = [
   {
@@ -34,7 +35,7 @@ const SLIDES = [
     primaryText: "EXPLORE BIKES",
     primaryHref: "/retail",
     secondaryText: "CALL SPECIALIST",
-    secondaryHref: "tel:+923218273645",
+    secondaryHref: `tel:+${WHATSAPP_RAW}`,
     image: "/hero-dark-slide-2.jpg",
     alt: "Pakistani Red Honda CD 70 and CG 125 Motorcycles Standing Together",
   },

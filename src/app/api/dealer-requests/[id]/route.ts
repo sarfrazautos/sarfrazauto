@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server"
 import { db } from "@/lib/db"
 import { dealerRequests } from "@/db/schema/dealer-requests"
+import { user } from "@/db/schema/auth"
+import { customerPortalProfiles } from "@/db/schema/customer-portal"
 import { eq, or } from "drizzle-orm"
 
 export async function GET(
@@ -72,6 +74,66 @@ export async function PUT(
         { success: false, error: "Dealer request not found" },
         { status: 404 }
       )
+    }
+
+    if (body.status) {
+      const lowerStatus = body.status.toLowerCase()
+      const cleanEmail = updated.email.trim().toLowerCase()
+
+      if (lowerStatus === "approved") {
+        try {
+          const [matchedUser] = await db
+            .update(user)
+            .set({
+              role: "dealer",
+              shopName: updated.shopName,
+              phone: updated.phone,
+              city: updated.city,
+              deliveryAddress: updated.address || null,
+              updatedAt: new Date(),
+            })
+            .where(eq(user.email, cleanEmail))
+            .returning()
+
+          const [matchedProfile] = await db
+            .select()
+            .from(customerPortalProfiles)
+            .where(eq(customerPortalProfiles.email, cleanEmail))
+            .limit(1)
+
+          if (matchedProfile) {
+            await db
+              .update(customerPortalProfiles)
+              .set({
+                userId: matchedUser?.id || matchedProfile.userId,
+                businessName: updated.shopName,
+                contactPerson: updated.ownerName,
+                phone: updated.phone,
+                preferredCity: updated.city,
+                shopAddress: updated.address || matchedProfile.shopAddress,
+                updatedAt: new Date(),
+              })
+              .where(eq(customerPortalProfiles.id, matchedProfile.id))
+          } else {
+            await db.insert(customerPortalProfiles).values({
+              userId: matchedUser?.id || null,
+              businessName: updated.shopName,
+              contactPerson: updated.ownerName,
+              email: cleanEmail,
+              phone: updated.phone,
+              preferredCity: updated.city,
+              shopAddress: updated.address || `${updated.city}, Pakistan`,
+            })
+          }
+        } catch {}
+      } else if (lowerStatus === "rejected") {
+        try {
+          await db
+            .update(user)
+            .set({ role: "rejected_dealer", updatedAt: new Date() })
+            .where(eq(user.email, cleanEmail))
+        } catch {}
+      }
     }
 
     return NextResponse.json({ success: true, request: updated })

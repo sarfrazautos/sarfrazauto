@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { ArrowUpRight, Building2, MapPin, RotateCcw, Store, Warehouse } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { WHATSAPP_DISPLAY } from "@/lib/constants";
 
 export interface BranchCardItem {
   id: string;
@@ -18,35 +19,35 @@ export interface BranchCardItem {
 
 const branches: BranchCardItem[] = [
   {
-    id: "saddar",
-    name: "Saddar Head Office",
-    tagline: "Retail counter & instant pickup.",
-    address: "Shop #23, Taj Mehal Qasim Auto Market, Saddar, Karachi",
-    phone: "+92 300 1234567",
-    timing: "Mon - Sat: 9:00 AM - 8:00 PM",
-    mapQuery: "Taj+Mehal+Qasim+Auto+Market+Saddar+Karachi",
+    id: "branch-1",
+    name: "Taj Mehal Qasim Market",
+    tagline: "Retail counter & instant parts pickup.",
+    address: "Shop #23, Taj Mehal Qasim Auto Market, Karachi, Pakistan",
+    phone: WHATSAPP_DISPLAY,
+    timing: "Mon - Sat: 9:00 AM - 8:30 PM",
+    mapQuery: "Taj+Mehal+Qasim+Auto+Market+Karachi",
     icon: Store,
     theme: "red",
   },
   {
-    id: "tibet",
-    name: "Tibet Centre Plaza",
-    tagline: "Wholesale desk & retailer supply.",
-    address: "Shop #12, Tibet Centre, M.A. Jinnah Road, Karachi",
-    phone: "+92 300 7654321",
-    timing: "Mon - Sat: 9:30 AM - 7:30 PM",
-    mapQuery: "Tibet+Centre+M.A.+Jinnah+Road+Karachi",
+    id: "branch-2",
+    name: "Tahir Abdullah Centre",
+    tagline: "Wholesale parts & dealer supply.",
+    address: "Shop #3, Tahir Abdullah Centre, Taj Mehal Market, Karachi",
+    phone: WHATSAPP_DISPLAY,
+    timing: "Mon - Sat: 9:30 AM - 8:00 PM",
+    mapQuery: "Tahir+Abdullah+Centre+Taj+Mehal+Market+Karachi",
     icon: Building2,
     theme: "light",
   },
   {
-    id: "site",
-    name: "SITE Logistics Hub",
-    tagline: "Bulk warehousing & fleet dispatch.",
-    address: "Plot 45-B, SITE Industrial Area, Karachi",
-    phone: "+92 333 1285556",
-    timing: "Mon - Sat: 8:30 AM - 6:30 PM",
-    mapQuery: "SITE+Industrial+Area+Karachi",
+    id: "branch-3",
+    name: "Boharpir Market Branch",
+    tagline: "Motorcycle overhaul kits & bulk logistics.",
+    address: "Shop #43, Taj Mehal Market, Shivram Dewan Mal Road, Boharpir, Karachi",
+    phone: WHATSAPP_DISPLAY,
+    timing: "Mon - Sat: 9:00 AM - 7:30 PM",
+    mapQuery: "Taj+Mehal+Market+Shivram+Dewan+Mal+Road+Boharpir+Karachi",
     icon: Warehouse,
     theme: "light",
   },

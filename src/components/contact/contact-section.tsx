@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { sendMessage } from "@/lib/api/messages";
+import { WHATSAPP_DISPLAY, WHATSAPP_RAW } from "@/lib/constants";
 
 export function ContactSection({ className }: { className?: string }) {
   const [name, setName] = useState("");
@@ -200,10 +201,10 @@ export function ContactSection({ className }: { className?: string }) {
                       </span>
                     </div>
                     <a
-                      href="tel:+923001234567"
+                      href={`tel:+${WHATSAPP_RAW}`}
                       className="text-sm font-semibold text-neutral-900 mt-1 block hover:text-red-600 transition-colors"
                     >
-                      +92 (300) 123-4567
+                      {WHATSAPP_DISPLAY}
                     </a>
                     <span className="text-[11px] text-neutral-400">
                       Mon-Sat from 9am to 8pm
