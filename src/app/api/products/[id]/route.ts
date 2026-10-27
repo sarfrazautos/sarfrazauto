@@ -133,7 +133,11 @@ export async function PUT(
     }
     if (body.type !== undefined) updateData.type = body.type.trim().toLowerCase()
     if (body.category !== undefined) updateData.category = body.category.trim()
-    if (body.brand !== undefined) updateData.brand = body.brand.trim()
+    if (body.brand !== undefined) {
+      updateData.brand = Array.isArray(body.brand)
+        ? body.brand.map((b: any) => String(b).trim()).filter(Boolean).join(", ")
+        : String(body.brand).trim()
+    }
     if (body.price !== undefined) updateData.price = parseInt(body.price, 10)
     if (body.originalPrice !== undefined) updateData.originalPrice = body.originalPrice ? parseInt(body.originalPrice, 10) : null
     if (body.stockStatus !== undefined) updateData.stockStatus = body.stockStatus

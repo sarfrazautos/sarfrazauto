@@ -80,7 +80,7 @@ export async function GET(req: Request) {
       }
     }
     if (brand && brand !== "all" && brand !== "All Brands" && brand !== "All") {
-      conditions.push(ilike(products.brand, brand))
+      conditions.push(ilike(products.brand, `%${brand}%`))
     }
     if (bike && bike !== "all" && bike !== "All Bikes" && bike !== "All") {
       const lowerBike = bike.toLowerCase().trim()
@@ -221,7 +221,13 @@ export async function POST(req: Request) {
   try {
     const body = await req.json()
 
-    if (!body.name || !body.price || !body.type || !body.category || !body.brand) {
+    const finalBrand = Array.isArray(body.brand)
+      ? body.brand.map((b: any) => String(b).trim()).filter(Boolean).join(", ")
+      : typeof body.brand === "string"
+      ? body.brand.trim()
+      : ""
+
+    if (!body.name || !body.price || !body.type || !body.category || !finalBrand) {
       return NextResponse.json(
         { success: false, error: "Missing required fields (name, price, type, category, brand)" },
         { status: 400 }
@@ -254,7 +260,7 @@ export async function POST(req: Request) {
         slug: targetSlug,
         type: body.type.trim().toLowerCase(),
         category: body.category.trim(),
-        brand: body.brand.trim(),
+        brand: finalBrand,
         price: parseInt(body.price, 10),
         originalPrice: body.originalPrice ? parseInt(body.originalPrice, 10) : null,
         stockStatus: body.stockStatus || "instock",

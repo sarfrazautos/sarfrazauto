@@ -22,7 +22,7 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { getColorHex } from "@/lib/product-colors";
 import { getProductById, getProducts } from "@/lib/api/products";
-import { getBrandLogo } from "@/lib/brand-logos";
+import { getBrandLogos } from "@/lib/brand-logos";
 import { useCartStore } from "@/lib/store/cart-store";
 import RelatedProducts from "./related-products";
 
@@ -202,7 +202,7 @@ function ProductOverviewContent({
   const stockStatusText = (product.stockStatus || "instock").toLowerCase();
   const isOutOfStock = stockStatusText === "outofstock" || stockStatusText === "out of stock";
   const isLowStock = stockStatusText === "lowstock" || stockStatusText === "low stock";
-  const brandLogo = getBrandLogo(product.brand, product.name);
+  const brandLogos = getBrandLogos(product.brand, product.name);
 
   return (
     <>
@@ -242,14 +242,22 @@ function ProductOverviewContent({
                     <span>Scheme: Buy {product.scheme.buyQty} + {product.scheme.freeQty} Free</span>
                   </div>
                 )}
-                {brandLogo && (
-                  <div className="absolute top-4 right-4 z-10 size-11 md:size-14 rounded-full flex items-center justify-center shadow-2xs group-hover:bg-white transition-colors">
-                    <img
-                      src={brandLogo}
-                      alt={product.brand || "Brand"}
-                      className="size-full rounded-full object-contain"
-                      loading="lazy"
-                    />
+                {brandLogos.length > 0 && (
+                  <div className="absolute top-4 right-4 z-10 flex items-center gap-2">
+                    {brandLogos.map((item, idx) => (
+                      <div
+                        key={`${item.name}-${idx}`}
+                        title={item.name}
+                        className="size-11 md:size-14 rounded-full flex items-center justify-center shadow-xs bg-white/95 p-1 border border-neutral-200/80 backdrop-blur-xs transition-transform hover:scale-110"
+                      >
+                        <img
+                          src={item.logo}
+                          alt={item.name}
+                          className="size-full rounded-full object-contain"
+                          loading="lazy"
+                        />
+                      </div>
+                    ))}
                   </div>
                 )}
                 <img

@@ -15,6 +15,16 @@ const BRANDS = [
     href: "/retail?brand=honda",
   },
   {
+    name: "Super Power",
+    image: "/brands-logo/super-power.png",
+    href: "/retail?brand=super-power",
+  },
+  {
+    name: "Crown",
+    image: "/brands-logo/crown.png",
+    href: "/retail?brand=crown",
+  },
+  {
     name: "Yamaha",
     image: "/brands-logo/yamaha.png",
     href: "/retail?brand=yamaha",
@@ -28,11 +38,6 @@ const BRANDS = [
     name: "United",
     image: "/brands-logo/united.png",
     href: "/retail?brand=united",
-  },
-  {
-    name: "Crown",
-    image: "/brands-logo/crown.png",
-    href: "/retail?brand=crown",
   },
   {
     name: "Super Star",

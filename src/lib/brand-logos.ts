@@ -7,21 +7,56 @@ const BRAND_LOGOS: Record<string, string> = {
   "super-star": "/brands-logo/super-star.png",
   "super star": "/brands-logo/super-star.png",
   superstar: "/brands-logo/super-star.png",
+  "super-power": "/brands-logo/super-power.png",
+  "super power": "/brands-logo/super-power.png",
+  superpower: "/brands-logo/super-power.png",
+  sp: "/brands-logo/super-power.png",
   unique: "/brands-logo/unique.png",
 }
 
-export function getBrandLogo(brand?: string | null, name?: string | null): string | null {
-  const b = (brand || "").trim().toLowerCase()
-  if (b && BRAND_LOGOS[b]) {
-    return BRAND_LOGOS[b]
-  }
+export function parseBrands(brandStr?: string | null): string[] {
+  if (!brandStr) return []
+  return brandStr
+    .split(/[,/|]+/)
+    .map((s) => s.trim())
+    .filter(Boolean)
+}
 
-  const n = (name || "").toLowerCase()
-  for (const [key, logo] of Object.entries(BRAND_LOGOS)) {
-    if (n.includes(key)) {
-      return logo
+export function getBrandLogos(
+  brand?: string | null,
+  name?: string | null
+): { name: string; logo: string }[] {
+  const brands = parseBrands(brand)
+  const results: { name: string; logo: string }[] = []
+  const seenLogos = new Set<string>()
+
+  for (const b of brands) {
+    const key = b.toLowerCase()
+    const logo = BRAND_LOGOS[key] || BRAND_LOGOS[key.replace(/\s+/g, "-")]
+    if (logo && !seenLogos.has(logo)) {
+      seenLogos.add(logo)
+      results.push({ name: b, logo })
     }
   }
 
-  return BRAND_LOGOS["crown"] || null
+  if (results.length === 0 && name) {
+    const n = name.toLowerCase()
+    for (const [key, logo] of Object.entries(BRAND_LOGOS)) {
+      if (n.includes(key) && !seenLogos.has(logo)) {
+        seenLogos.add(logo)
+        results.push({ name: key, logo })
+      }
+    }
+  }
+
+  if (results.length === 0 && BRAND_LOGOS["crown"]) {
+    results.push({ name: "Crown", logo: BRAND_LOGOS["crown"] })
+  }
+
+  return results
+}
+
+export function getBrandLogo(brand?: string | null, name?: string | null): string | null {
+  const logos = getBrandLogos(brand, name)
+  return logos.length > 0 ? logos[0].logo : null
 }

@@ -219,7 +219,10 @@ export function AdminProductsTable() {
                         </div>
                         <div className="min-w-0">
                           <p className="font-medium text-neutral-900 truncate">{product.name}</p>
-                          <p className="font-mono text-[10px] text-neutral-400">P-{String(product.id).padStart(3, "0")}</p>
+                          <p className="font-mono text-[10px] text-neutral-400">
+                            P-{String(product.id).padStart(3, "0")}
+                            {product.brand ? ` • ${product.brand}` : ""}
+                          </p>
                         </div>
                       </div>
                     </TableCell>

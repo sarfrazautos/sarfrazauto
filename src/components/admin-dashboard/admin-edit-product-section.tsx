@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
-import { ChevronRight, Search, ChevronDown, Check, Loader2, AlertCircle } from "lucide-react"
+import { ChevronRight, Search, ChevronDown, Check, Loader2, AlertCircle, X } from "lucide-react"
 import { toast } from "sonner"
 import { useQueryClient } from "@tanstack/react-query"
 import { Input } from "@/components/ui/input"
@@ -22,14 +22,15 @@ import { AdminProductImageUploader, type UploadedProductImage } from "@/componen
 import { AdminProductColorSelector } from "@/components/admin-dashboard/admin-product-color-selector"
 import { uploadProductImage, getProductById, updateProduct } from "@/lib/api/products"
 import { createSlug } from "@/lib/slug"
+import { parseBrands } from "@/lib/brand-logos"
 
 const bikeBrands = [
-  "Crown",
   "Honda",
+  "Super Power",
+  "Crown",
   "Yamaha",
   "Suzuki",
   "United",
-  "Super Power",
   "Unique",
   "Super Star",
   "Road Prince",
@@ -82,7 +83,7 @@ export function AdminEditProductSection() {
   const [name, setName] = useState("")
   const [productType, setProductType] = useState("wholesale")
   const [category, setCategory] = useState("Others")
-  const [brandName, setBrandName] = useState("Crown")
+  const [selectedBrands, setSelectedBrands] = useState<string[]>([])
   const [brandSearch, setBrandSearch] = useState("")
   const [isBrandDropdownOpen, setIsBrandDropdownOpen] = useState(false)
   const [compatibleBike, setCompatibleBike] = useState("70cc")
@@ -99,6 +100,18 @@ export function AdminEditProductSection() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [uploadProgress, setUploadProgress] = useState(0)
   const [progressStage, setProgressStage] = useState("")
+
+  const toggleBrand = (b: string) => {
+    const trimmed = b.trim()
+    if (!trimmed) return
+    setSelectedBrands((prev) =>
+      prev.includes(trimmed) ? prev.filter((x) => x !== trimmed) : [...prev, trimmed]
+    )
+  }
+
+  const removeBrand = (b: string) => {
+    setSelectedBrands((prev) => prev.filter((x) => x !== b))
+  }
 
   useEffect(() => {
     if (!productId) {
@@ -119,7 +132,7 @@ export function AdminEditProductSection() {
         setName(product.name || "")
         setProductType(product.type || "wholesale")
         setCategory(product.category || "Others")
-        setBrandName(product.brand || "Crown")
+        setSelectedBrands(parseBrands(product.brand))
         setCompatibleBike(product.compatibleBike || "70cc")
         setPrice(product.price ? String(product.price) : "")
         setOriginalPrice(product.originalPrice ? String(product.originalPrice) : "")
@@ -175,8 +188,8 @@ export function AdminEditProductSection() {
       toast.error("Please select a category")
       return
     }
-    if (!brandName.trim()) {
-      toast.error("Please select or search a brand")
+    if (selectedBrands.length === 0) {
+      toast.error("Please select at least one brand (e.g. Honda, Super Power)")
       return
     }
     if (!price || isNaN(Number(price))) {
@@ -220,7 +233,7 @@ export function AdminEditProductSection() {
         slug: targetSlug,
         type: productType,
         category,
-        brand: brandName.trim(),
+        brand: selectedBrands.join(", "),
         price: parseInt(price, 10),
         originalPrice: originalPrice ? parseInt(originalPrice, 10) : null,
         stockStatus,
@@ -391,18 +404,52 @@ export function AdminEditProductSection() {
                   </div>
 
                   <div className="space-y-1.5 relative">
-                    <Label className="text-xs font-medium text-neutral-700">Brand Name *</Label>
+                    <div className="flex items-center justify-between">
+                      <Label className="text-xs font-medium text-neutral-700">Brands / Companies *</Label>
+                      {selectedBrands.length > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => setSelectedBrands([])}
+                          className="text-[11px] text-neutral-400 hover:text-red-600 transition-colors cursor-pointer"
+                        >
+                          Clear all
+                        </button>
+                      )}
+                    </div>
+
                     <button
                       type="button"
                       disabled={isSubmitting}
                       onClick={() => setIsBrandDropdownOpen(!isBrandDropdownOpen)}
-                      className="w-full flex items-center justify-between h-9 px-3 rounded-lg border border-input bg-white text-left text-xs transition-colors hover:border-neutral-400 focus:outline-none focus:ring-2 focus:ring-red-500/20 cursor-pointer disabled:opacity-50"
+                      className="w-full flex items-center justify-between min-h-9 py-1 px-3 rounded-lg border border-input bg-white text-left text-xs transition-colors hover:border-neutral-400 focus:outline-none focus:ring-2 focus:ring-red-500/20 cursor-pointer disabled:opacity-50"
                     >
-                      <span className={brandName ? "text-neutral-900 font-medium" : "text-neutral-500"}>
-                        {brandName || "Select or search brand..."}
+                      <span className={selectedBrands.length > 0 ? "text-neutral-900 font-medium truncate pr-2" : "text-neutral-500"}>
+                        {selectedBrands.length > 0
+                          ? `${selectedBrands.length} selected: ${selectedBrands.join(", ")}`
+                          : "Select brands (e.g. Honda, Super Power)..."}
                       </span>
                       <ChevronDown className="size-3.5 text-neutral-400 shrink-0" />
                     </button>
+
+                    {selectedBrands.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5 pt-1">
+                        {selectedBrands.map((b) => (
+                          <span
+                            key={b}
+                            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-neutral-100 text-neutral-800 text-[11px] font-medium border border-neutral-200"
+                          >
+                            <span>{b}</span>
+                            <button
+                              type="button"
+                              onClick={() => removeBrand(b)}
+                              className="text-neutral-400 hover:text-red-600 cursor-pointer"
+                            >
+                              <X className="size-3" />
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+                    )}
 
                     {isBrandDropdownOpen && (
                       <div className="absolute top-full left-0 right-0 mt-1 z-50 rounded-xl border border-neutral-200 bg-white shadow-lg overflow-hidden animate-in fade-in-0 zoom-in-95">
@@ -410,7 +457,7 @@ export function AdminEditProductSection() {
                           <div className="relative">
                             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3 text-neutral-400" />
                             <Input
-                              placeholder="Search brand (Crown, Honda, Yamaha...)"
+                              placeholder="Search or add brand..."
                               value={brandSearch}
                               onChange={(e) => setBrandSearch(e.target.value)}
                               className="pl-7 h-8 text-xs bg-white"
@@ -421,42 +468,65 @@ export function AdminEditProductSection() {
                         <div className="max-h-48 overflow-y-auto p-1 divide-y divide-neutral-50">
                           {filteredBrands.length === 0 ? (
                             <div className="p-3 text-center">
-                              <p className="text-xs text-neutral-400">No matching brand found</p>
-                              {brandSearch && (
+                              <p className="text-xs text-neutral-400">No preset brand matching &quot;{brandSearch}&quot;</p>
+                              {brandSearch.trim() && (
                                 <button
                                   type="button"
                                   onClick={() => {
-                                    setBrandName(brandSearch)
-                                    setIsBrandDropdownOpen(false)
+                                    toggleBrand(brandSearch.trim())
                                     setBrandSearch("")
                                   }}
                                   className="mt-1 text-xs text-red-600 font-semibold hover:underline cursor-pointer"
                                 >
-                                  Use &quot;{brandSearch}&quot;
+                                  + Add &quot;{brandSearch.trim()}&quot;
                                 </button>
                               )}
                             </div>
                           ) : (
-                            filteredBrands.map((b) => (
-                              <button
-                                key={b}
-                                type="button"
-                                onClick={() => {
-                                  setBrandName(b)
-                                  setIsBrandDropdownOpen(false)
-                                  setBrandSearch("")
-                                }}
-                                className={`w-full flex items-center justify-between px-3 py-2 text-left text-xs rounded-lg transition-colors cursor-pointer ${
-                                  brandName === b
-                                    ? "bg-red-50 text-red-700 font-medium"
-                                    : "hover:bg-neutral-50 text-neutral-800"
-                                }`}
-                              >
-                                <span>{b}</span>
-                                {brandName === b && <Check className="size-3.5 text-red-600" />}
-                              </button>
-                            ))
+                            <>
+                              {filteredBrands.map((b) => {
+                                const isChecked = selectedBrands.includes(b)
+                                return (
+                                  <button
+                                    key={b}
+                                    type="button"
+                                    onClick={() => toggleBrand(b)}
+                                    className={`w-full flex items-center justify-between px-3 py-2 text-left text-xs rounded-lg transition-colors cursor-pointer ${
+                                      isChecked
+                                        ? "bg-red-50 text-red-700 font-medium"
+                                        : "hover:bg-neutral-50 text-neutral-800"
+                                    }`}
+                                  >
+                                    <span>{b}</span>
+                                    {isChecked && <Check className="size-3.5 text-red-600" />}
+                                  </button>
+                                )
+                              })}
+                              {brandSearch.trim() && !filteredBrands.some((b) => b.toLowerCase() === brandSearch.trim().toLowerCase()) && (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    toggleBrand(brandSearch.trim())
+                                    setBrandSearch("")
+                                  }}
+                                  className="w-full text-left px-3 py-2 text-xs text-red-600 hover:bg-red-50 font-medium rounded-lg cursor-pointer"
+                                >
+                                  + Add &quot;{brandSearch.trim()}&quot;
+                                </button>
+                              )}
+                            </>
                           )}
+                        </div>
+                        <div className="p-1.5 bg-neutral-50 border-t border-neutral-100 flex justify-end">
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => setIsBrandDropdownOpen(false)}
+                            className="h-7 text-xs font-medium text-neutral-700 cursor-pointer"
+                          >
+                            Done
+                          </Button>
                         </div>
                       </div>
                     )}
