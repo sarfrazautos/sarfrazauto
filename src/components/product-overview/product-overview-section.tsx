@@ -217,7 +217,7 @@ function ProductOverviewContent({
                       type="button"
                       onClick={() => setActiveImageIndex(idx)}
                       className={cn(
-                        "size-20 sm:size-22 rounded-2xl p-2.5 bg-[#f5f5f7] border-2 transition-all flex items-center justify-center cursor-pointer shrink-0 overflow-hidden",
+                        "size-20 sm:size-22 rounded-2xl bg-[#fff] border-2 transition-all flex items-center justify-center cursor-pointer shrink-0 overflow-hidden",
                         isActive
                           ? "border-neutral-950 shadow-xs"
                           : "border-transparent hover:border-neutral-300"
@@ -233,7 +233,7 @@ function ProductOverviewContent({
                 })}
               </div>
 
-              <div className="relative flex-1 aspect-square sm:aspect-auto sm:min-h-[580px] rounded-3xl bg-[#f5f5f7] p-8 sm:p-12 flex items-center justify-center overflow-hidden">
+              <div className="relative flex-1 aspect-square sm:aspect-auto sm:min-h-[580px] rounded-3xl bg-[#fff] border  flex items-center justify-center overflow-hidden">
                 {product.scheme && (
                   <div className="absolute top-4 left-4 z-10 inline-flex items-center gap-1.5 bg-emerald-600 text-white text-xs font-semibold px-3 py-1.5 rounded-full shadow-xs">
                     <LuSparkles className="size-3.5" />
@@ -243,7 +243,7 @@ function ProductOverviewContent({
                 <img
                   src={currentMainImage}
                   alt={product.name}
-                  className="w-full h-full max-h-[440px] object-contain drop-shadow-md transition-all duration-300 transform hover:scale-105"
+                  className="w-full h-full  object-contain transition-all duration-300 transform hover:scale-105"
                 />
               </div>
             </div>

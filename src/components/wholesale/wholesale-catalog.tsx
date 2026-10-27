@@ -186,10 +186,10 @@ export function WholesaleCatalog({
                 : `/wholesale-product-overview?id=${product.id}`;
 
               return (
-                <div key={product.id} className="group flex flex-col">
+                <div key={product.id} className="group border rounded-2xl flex flex-col">
                   <Link
                     href={productHref}
-                    className="relative aspect-square w-full rounded-2xl bg-[#f4f4f5] overflow-hidden p-6 flex items-center justify-center transition-all duration-300 group-hover:bg-[#ebebee]"
+                    className="relative aspect-square w-full rounded-2xl bg-[#fff] overflow-hidden flex items-center justify-center transition-all duration-300 group-hover:bg-[#ebebee]"
                   >
                     {product.scheme ? (
                       <span className="absolute top-3.5 left-3.5 text-xs font-semibold px-2.5 py-0.5 rounded-full z-10 bg-emerald-600 text-white shadow-xs">
@@ -203,7 +203,7 @@ export function WholesaleCatalog({
                     <img
                       src={primaryImage}
                       alt={product.name}
-                      className="w-full h-full object-contain drop-shadow-sm transition-all duration-300 group-hover:scale-105 group-hover:brightness-75"
+                      className="w-full h-full object-contain transition-all duration-300 group-hover:scale-105 group-hover:brightness-75"
                     />
 
                     <div className="absolute inset-0 bg-black/15 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 flex items-center justify-center pointer-events-none">
@@ -214,7 +214,7 @@ export function WholesaleCatalog({
                     </div>
                   </Link>
 
-                  <div className="mt-3.5 flex flex-col gap-1 flex-1">
+                  <div className="mt-3.5 flex flex-col gap-1 flex-1 p-3">
                     <div className="flex items-center justify-between gap-2 text-xs">
                       <span className="text-neutral-500 font-medium truncate">
                         {product.category}
@@ -242,7 +242,7 @@ export function WholesaleCatalog({
                         </div>
                       </Link>
 
-                      <button
+                      <Button
                         type="button"
                         onClick={(e) => handleAdd(product, e)}
                         aria-label="Add to wholesale carton list"
@@ -250,7 +250,7 @@ export function WholesaleCatalog({
                           "size-8 md:size-9 rounded-full flex items-center justify-center transition-all cursor-pointer shrink-0 shadow-xs",
                           isAdded
                             ? "bg-green-600 text-white scale-95"
-                            : "bg-neutral-900 hover:bg-red-600 text-white"
+                            : "bg-red-600 hover:bg-red-700 active:scale-95 text-white"
                         )}
                       >
                         {isAdded ? (
@@ -258,7 +258,7 @@ export function WholesaleCatalog({
                         ) : (
                           <Plus className="size-4 stroke-[2.5]" />
                         )}
-                      </button>
+                      </Button>
                     </div>
                   </div>
                 </div>

@@ -175,10 +175,10 @@ export function RetailCatalog({
               const productHref = product.slug ? `/product-overview/${product.slug}` : `/product-overview?id=${product.id}`;
 
               return (
-                <div key={product.id} className="group flex flex-col">
+                <div key={product.id} className="group flex flex-col border rounded-2xl">
                   <Link
                     href={productHref}
-                    className="relative aspect-square w-full rounded-2xl bg-[#f4f4f5] overflow-hidden p-6 flex items-center justify-center transition-all duration-300 group-hover:bg-[#ebebee]"
+                    className="relative aspect-square w-full rounded-2xl bg-[#fff] overflow-hidden flex items-center justify-center transition-all duration-300 group-hover:bg-[#ebebee]"
                   >
                     {product.badge && (
                       <span className="absolute top-3.5 left-3.5 text-xs font-semibold px-2.5 py-0.5 rounded-full z-10 bg-red-100 text-red-600">
@@ -188,7 +188,7 @@ export function RetailCatalog({
                     <img
                       src={primaryImage}
                       alt={product.name}
-                      className="w-full h-full object-contain drop-shadow-sm transition-all duration-300 group-hover:scale-105 group-hover:brightness-75"
+                      className="w-full h-full object-contain transition-all duration-300 group-hover:scale-105 group-hover:brightness-75"
                     />
 
                     <div className="absolute inset-0 bg-black/15 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 flex items-center justify-center pointer-events-none">
@@ -199,7 +199,7 @@ export function RetailCatalog({
                     </div>
                   </Link>
 
-                  <div className="mt-3.5 flex flex-col gap-1 flex-1">
+                  <div className="mt-3.5 p-3 flex flex-col gap-1 flex-1">
                     <div className="flex items-center justify-between gap-2 text-xs">
                       <span className="text-neutral-500 font-medium truncate">
                         {product.category}

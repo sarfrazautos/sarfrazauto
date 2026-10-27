@@ -136,10 +136,10 @@ export function RelatedProducts({
                 : `${basePath}?id=${product.id}`;
 
               return (
-                <div key={product.id} className="group flex flex-col">
+                <div key={product.id} className="group border rounded-2xl flex flex-col">
                   <Link
                     href={productHref}
-                    className="relative aspect-square w-full rounded-2xl bg-[#f4f4f5] overflow-hidden p-6 flex items-center justify-center transition-all duration-300 group-hover:bg-[#ebebee]"
+                    className="relative aspect-square w-full rounded-2xl bg-[#fff] overflow-hidden flex items-center justify-center transition-all duration-300 group-hover:bg-[#ebebee]"
                   >
                     {product.badge && (
                       <span className="absolute top-3.5 left-3.5 text-xs font-semibold px-2.5 py-0.5 rounded-full z-10 bg-red-100 text-red-600">
@@ -149,11 +149,11 @@ export function RelatedProducts({
                     <img
                       src={primaryImage}
                       alt={product.name}
-                      className="w-full h-full object-contain drop-shadow-sm transition-transform duration-300 group-hover:scale-105"
+                      className="w-full h-full object-contain  transition-transform duration-300 group-hover:scale-105"
                     />
                   </Link>
 
-                  <div className="flex items-center justify-between gap-3 mt-3.5">
+                  <div className="flex items-center justify-between gap-3 mt-3.5 p-3">
                     <Link href={productHref} className="min-w-0 flex-1 group/title">
                       <h3 className="font-medium text-neutral-900 group-hover/title:text-red-600 transition-colors text-sm md:text-base leading-snug line-clamp-2">
                         {product.name}
@@ -171,7 +171,7 @@ export function RelatedProducts({
                         "size-9 rounded-full flex items-center justify-center transition-all cursor-pointer shrink-0 shadow-xs",
                         isAdded
                           ? "bg-green-600 text-white scale-95"
-                          : "bg-neutral-900 hover:bg-red-600 text-white"
+                          : "bg-red-600 hover:bg-red-700 active:scale-95 text-white"
                       )}
                     >
                       {isAdded ? (
