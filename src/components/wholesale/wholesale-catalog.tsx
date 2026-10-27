@@ -54,7 +54,8 @@ export interface WholesaleProduct {
 export function WholesaleCatalog({
   searchQuery,
   activeCategory,
-  activeBike,
+  activeBrand = "All Brands",
+  activeBike = "All Bikes",
   currentPage = 1,
   onPageChange,
   onClearFilters,
@@ -62,7 +63,8 @@ export function WholesaleCatalog({
 }: {
   searchQuery: string;
   activeCategory: string;
-  activeBike: string;
+  activeBrand?: string;
+  activeBike?: string;
   currentPage?: number;
   onPageChange?: (page: number) => void;
   onClearFilters?: () => void;
@@ -74,7 +76,9 @@ export function WholesaleCatalog({
 
   const categoryQuery = !activeCategory || activeCategory === "All" ? "" : activeCategory;
   const brandQuery =
-    !activeBike || activeBike === "All Brands" || activeBike === "All" ? "" : activeBike;
+    !activeBrand || activeBrand === "All Brands" || activeBrand === "All" ? "" : activeBrand;
+  const bikeQuery =
+    !activeBike || activeBike === "All Bikes" || activeBike === "All" ? "" : activeBike;
 
   const { data, isLoading } = useQuery({
     queryKey: [
@@ -85,6 +89,7 @@ export function WholesaleCatalog({
         search: searchQuery,
         category: categoryQuery,
         brand: brandQuery,
+        bike: bikeQuery,
       },
     ],
     queryFn: () =>
@@ -95,6 +100,7 @@ export function WholesaleCatalog({
         search: searchQuery,
         category: categoryQuery,
         brand: brandQuery,
+        bike: bikeQuery,
       }),
   });
 

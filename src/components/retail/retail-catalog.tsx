@@ -40,7 +40,8 @@ function getPaginationItems(current: number, total: number) {
 export function RetailCatalog({
   searchQuery = "",
   activeCategory = "All",
-  activeBike = "All Brands",
+  activeBrand = "All Brands",
+  activeBike = "All Bikes",
   currentPage = 1,
   onPageChange,
   onClearFilters,
@@ -48,6 +49,7 @@ export function RetailCatalog({
 }: {
   searchQuery?: string;
   activeCategory?: string;
+  activeBrand?: string;
   activeBike?: string;
   currentPage?: number;
   onPageChange?: (page: number) => void;
@@ -57,9 +59,14 @@ export function RetailCatalog({
   const [addedItems, setAddedItems] = useState<Record<string, boolean>>({});
 
   const brandQuery =
-    !activeBike || activeBike === "All Brands" || activeBike === "All"
+    !activeBrand || activeBrand === "All Brands" || activeBrand === "All"
       ? ""
-      : activeBike === "Others"
+      : activeBrand === "Others"
+      ? ""
+      : activeBrand;
+
+  const bikeQuery =
+    !activeBike || activeBike === "All Bikes" || activeBike === "All"
       ? ""
       : activeBike;
 
@@ -75,6 +82,7 @@ export function RetailCatalog({
         search: searchQuery,
         category: categoryQuery,
         brand: brandQuery,
+        bike: bikeQuery,
       },
     ],
     queryFn: () =>
@@ -85,6 +93,7 @@ export function RetailCatalog({
         search: searchQuery,
         category: categoryQuery,
         brand: brandQuery,
+        bike: bikeQuery,
       }),
   });
 

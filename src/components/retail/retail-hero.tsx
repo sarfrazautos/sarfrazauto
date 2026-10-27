@@ -16,20 +16,30 @@ import {
 } from "@/components/ui/select";
 import { ALL_CATEGORIES } from "@/lib/category-mapper";
 
-const BIKES = [
-  { id: "all", name: "All Brands" },
-  { id: "crown", name: "Crown" },
-  { id: "honda", name: "Honda" },
-  { id: "yamaha", name: "Yamaha" },
-  { id: "suzuki", name: "Suzuki" },
-  { id: "united", name: "United" },
-  { id: "super-power", name: "Super Power" },
-  { id: "unique", name: "Unique" },
-  { id: "road-prince", name: "Road Prince" },
-  { id: "super-star", name: "Super Star" },
-  { id: "hi-speed", name: "Hi-Speed" },
-  { id: "habib", name: "Habib" },
-  { id: "others", name: "Others" },
+export const BRANDS = [
+  { id: "all", label: "All Brands", value: "All Brands" },
+  { id: "crown", label: "Crown", value: "Crown" },
+  { id: "honda", label: "Honda", value: "Honda" },
+  { id: "yamaha", label: "Yamaha", value: "Yamaha" },
+  { id: "suzuki", label: "Suzuki", value: "Suzuki" },
+  { id: "united", label: "United", value: "United" },
+  { id: "super-power", label: "Super Power", value: "Super Power" },
+  { id: "unique", label: "Unique", value: "Unique" },
+  { id: "road-prince", label: "Road Prince", value: "Road Prince" },
+  { id: "super-star", label: "Super Star", value: "Super Star" },
+  { id: "hi-speed", label: "Hi-Speed", value: "Hi-Speed" },
+  { id: "habib", label: "Habib", value: "Habib" },
+  { id: "others", label: "Others", value: "Others" },
+];
+
+export const BIKES = [
+  { id: "all", label: "All Bikes", value: "All Bikes" },
+  { id: "70cc", label: "70 Bike (CD 70)", value: "70cc" },
+  { id: "100cc", label: "100 Bike (CD 100)", value: "100cc" },
+  { id: "110cc", label: "110 Bike", value: "110cc" },
+  { id: "125cc", label: "125 Bike (CG 125)", value: "125cc" },
+  { id: "150cc", label: "150 Bike", value: "150cc" },
+  { id: "all-models", label: "Universal / Other", value: "All Models" },
 ];
 
 const CATEGORIES = ALL_CATEGORIES;
@@ -39,7 +49,9 @@ export function RetailHero({
   onSearchSubmit,
   activeCategory,
   onCategoryChange,
-  activeBike = "All Brands",
+  activeBrand = "All Brands",
+  onBrandChange,
+  activeBike = "All Bikes",
   onBikeChange,
   onClearFilters,
   className = "",
@@ -48,6 +60,8 @@ export function RetailHero({
   onSearchSubmit: (val: string) => void;
   activeCategory: string;
   onCategoryChange: (cat: string) => void;
+  activeBrand?: string;
+  onBrandChange?: (brand: string) => void;
   activeBike?: string;
   onBikeChange?: (bike: string) => void;
   onClearFilters?: () => void;
@@ -68,7 +82,8 @@ export function RetailHero({
     searchQuery ||
     searchInput ||
     (activeCategory && activeCategory !== "All") ||
-    (activeBike && activeBike !== "All Brands" && activeBike !== "All")
+    (activeBrand && activeBrand !== "All Brands" && activeBrand !== "All") ||
+    (activeBike && activeBike !== "All Bikes" && activeBike !== "All")
   );
 
   return (
@@ -87,7 +102,7 @@ export function RetailHero({
           </p>
         </div>
 
-        <div className="mt-8 flex flex-col lg:flex-row gap-3 sm:gap-4 items-stretch lg:items-center justify-between">
+        <div className="mt-8 flex flex-col xl:flex-row gap-3 sm:gap-4 items-stretch xl:items-center justify-between">
           <form onSubmit={handleSubmit} className="flex items-center gap-2 flex-1 max-w-lg">
             <div className="relative flex-1">
               <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-neutral-400" />
@@ -107,9 +122,9 @@ export function RetailHero({
             </Button>
           </form>
 
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+          <div className="flex flex-wrap sm:flex-nowrap items-stretch sm:items-center gap-2.5 sm:gap-3">
             <Select value={activeCategory} onValueChange={(val) => onCategoryChange(val as string)}>
-              <SelectTrigger className="w-full sm:w-[190px] h-10">
+              <SelectTrigger className="w-full sm:w-[170px] h-10">
                 <SelectValue placeholder="Select Category" />
               </SelectTrigger>
               <SelectContent>
@@ -125,15 +140,31 @@ export function RetailHero({
             </Select>
 
             <Select value={activeBike} onValueChange={(val) => onBikeChange?.(val as string)}>
-              <SelectTrigger className="w-full sm:w-[190px] h-10">
+              <SelectTrigger className="w-full sm:w-[165px] h-10">
+                <SelectValue placeholder="Select Bike" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectLabel>Bike Models</SelectLabel>
+                  {BIKES.map((bike) => (
+                    <SelectItem key={bike.id} value={bike.value}>
+                      {bike.label}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+
+            <Select value={activeBrand} onValueChange={(val) => onBrandChange?.(val as string)}>
+              <SelectTrigger className="w-full sm:w-[150px] h-10">
                 <SelectValue placeholder="Select Brand" />
               </SelectTrigger>
               <SelectContent>
                 <SelectGroup>
-                  <SelectLabel>Motorcycle Brands</SelectLabel>
-                  {BIKES.map((bike) => (
-                    <SelectItem key={bike.id} value={bike.name}>
-                      {bike.name}
+                  <SelectLabel>Brands</SelectLabel>
+                  {BRANDS.map((brand) => (
+                    <SelectItem key={brand.id} value={brand.value}>
+                      {brand.label}
                     </SelectItem>
                   ))}
                 </SelectGroup>

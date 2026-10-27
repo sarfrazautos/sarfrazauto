@@ -16,6 +16,7 @@ export async function GET(req: Request) {
     const type = searchParams.get("type")?.trim().toLowerCase() || ""
     const category = searchParams.get("category")?.trim() || ""
     const brand = searchParams.get("brand")?.trim() || ""
+    const bike = searchParams.get("bike")?.trim() || searchParams.get("model")?.trim() || searchParams.get("compatibleBike")?.trim() || ""
     const exact = searchParams.get("exact") === "true" || searchParams.get("exactType") === "true"
 
     const conditions = []
@@ -61,7 +62,7 @@ export async function GET(req: Request) {
     } else {
       conditions.push(eq(products.type, type))
     }
-    if (category && category !== "all") {
+    if (category && category !== "all" && category !== "All") {
       const lowerCat = category.toLowerCase().trim()
       if (lowerCat === "cd70" || lowerCat === "cd-70") {
         conditions.push(or(ilike(products.name, "%CD70%"), ilike(products.compatibleBike, "%70cc%")))
@@ -78,8 +79,61 @@ export async function GET(req: Request) {
         }
       }
     }
-    if (brand && brand !== "all") {
+    if (brand && brand !== "all" && brand !== "All Brands" && brand !== "All") {
       conditions.push(ilike(products.brand, brand))
+    }
+    if (bike && bike !== "all" && bike !== "All Bikes" && bike !== "All") {
+      const lowerBike = bike.toLowerCase().trim()
+      if (lowerBike.includes("70")) {
+        conditions.push(
+          or(
+            ilike(products.compatibleBike, "%70%"),
+            ilike(products.name, "%CD70%"),
+            ilike(products.name, "%CD 70%"),
+            ilike(products.name, "%70cc%")
+          )
+        )
+      } else if (lowerBike.includes("100")) {
+        conditions.push(
+          or(
+            ilike(products.compatibleBike, "%100%"),
+            ilike(products.name, "%100%"),
+            ilike(products.name, "%Pridor%")
+          )
+        )
+      } else if (lowerBike.includes("110")) {
+        conditions.push(
+          or(
+            ilike(products.compatibleBike, "%110%"),
+            ilike(products.name, "%110%")
+          )
+        )
+      } else if (lowerBike.includes("125")) {
+        conditions.push(
+          or(
+            ilike(products.compatibleBike, "%125%"),
+            ilike(products.name, "%CG125%"),
+            ilike(products.name, "%CG 125%"),
+            ilike(products.name, "%125cc%")
+          )
+        )
+      } else if (lowerBike.includes("150")) {
+        conditions.push(
+          or(
+            ilike(products.compatibleBike, "%150%"),
+            ilike(products.name, "%150%")
+          )
+        )
+      } else if (lowerBike.includes("all models") || lowerBike.includes("universal") || lowerBike.includes("other")) {
+        conditions.push(
+          or(
+            ilike(products.compatibleBike, "%All Models%"),
+            ilike(products.compatibleBike, "%Universal%")
+          )
+        )
+      } else {
+        conditions.push(ilike(products.compatibleBike, `%${bike}%`))
+      }
     }
     const isFeaturedParam = searchParams.get("isFeatured")
     if (isFeaturedParam !== null && isFeaturedParam !== undefined && isFeaturedParam !== "") {

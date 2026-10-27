@@ -15,22 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ALL_CATEGORIES } from "@/lib/category-mapper";
-
-const BIKES = [
-  { id: "all", name: "All Brands" },
-  { id: "crown", name: "Crown" },
-  { id: "honda", name: "Honda" },
-  { id: "yamaha", name: "Yamaha" },
-  { id: "suzuki", name: "Suzuki" },
-  { id: "united", name: "United" },
-  { id: "super-power", name: "Super Power" },
-  { id: "unique", name: "Unique" },
-  { id: "road-prince", name: "Road Prince" },
-  { id: "super-star", name: "Super Star" },
-  { id: "hi-speed", name: "Hi-Speed" },
-  { id: "habib", name: "Habib" },
-  { id: "others", name: "Others" },
-];
+import { BRANDS, BIKES } from "@/components/retail/retail-hero";
 
 const CATEGORIES = ALL_CATEGORIES;
 
@@ -39,7 +24,9 @@ export function WholesaleHero({
   onSearchSubmit,
   activeCategory,
   onCategoryChange,
-  activeBike = "All Brands",
+  activeBrand = "All Brands",
+  onBrandChange,
+  activeBike = "All Bikes",
   onBikeChange,
   onClearFilters,
   className = "",
@@ -48,6 +35,8 @@ export function WholesaleHero({
   onSearchSubmit: (val: string) => void;
   activeCategory: string;
   onCategoryChange: (cat: string) => void;
+  activeBrand?: string;
+  onBrandChange?: (brand: string) => void;
   activeBike?: string;
   onBikeChange?: (bike: string) => void;
   onClearFilters?: () => void;
@@ -68,7 +57,8 @@ export function WholesaleHero({
     searchQuery ||
     searchInput ||
     (activeCategory && activeCategory !== "All") ||
-    (activeBike && activeBike !== "All Brands" && activeBike !== "All")
+    (activeBrand && activeBrand !== "All Brands" && activeBrand !== "All") ||
+    (activeBike && activeBike !== "All Bikes" && activeBike !== "All")
   );
 
   return (
@@ -76,18 +66,18 @@ export function WholesaleHero({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl">
           <h1 className="text-4xl sm:text-4xl md:text-5xl font-semibold tracking-tight capitalize text-neutral-950 md:text-start text-center leading-tight">
-            Wholesale spare parts &amp;{" "}
-            <span className="text-red-600">master cartons.</span>
+            Wholesale bulk &amp;{" "}
+            <span className="text-red-600">dealer supply.</span>
           </h1>
 
           <p className="text-neutral-500 text-sm sm:text-base mt-3 leading-relaxed md:block hidden">
             <span>
-              Direct factory master cartons &amp; volume dealer supply across Pakistan. Dispatch from Saddar &amp; SITE Hub.
+              Direct importer rates for registered workshop owners and regional parts retailers.
             </span>
           </p>
         </div>
 
-        <div className="mt-8 flex flex-col lg:flex-row gap-3 sm:gap-4 items-stretch lg:items-center justify-between">
+        <div className="mt-8 flex flex-col xl:flex-row gap-3 sm:gap-4 items-stretch xl:items-center justify-between">
           <form onSubmit={handleSubmit} className="flex items-center gap-2 flex-1 max-w-lg">
             <div className="relative flex-1">
               <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-neutral-400" />
@@ -95,7 +85,7 @@ export function WholesaleHero({
                 type="text"
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
-                placeholder="Search wholesale cartons (e.g. cylinder, block, clutch)..."
+                placeholder="Search bulk parts (e.g. cylinder, clutch, piston)..."
                 className="w-full h-10 pl-10 pr-4 text-sm transition-all bg-white"
               />
             </div>
@@ -107,9 +97,9 @@ export function WholesaleHero({
             </Button>
           </form>
 
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+          <div className="flex flex-wrap sm:flex-nowrap items-stretch sm:items-center gap-2.5 sm:gap-3">
             <Select value={activeCategory} onValueChange={(val) => onCategoryChange(val as string)}>
-              <SelectTrigger className="w-full sm:w-[190px] h-10">
+              <SelectTrigger className="w-full sm:w-[170px] h-10">
                 <SelectValue placeholder="Select Category" />
               </SelectTrigger>
               <SelectContent>
@@ -125,15 +115,31 @@ export function WholesaleHero({
             </Select>
 
             <Select value={activeBike} onValueChange={(val) => onBikeChange?.(val as string)}>
-              <SelectTrigger className="w-full sm:w-[190px] h-10">
+              <SelectTrigger className="w-full sm:w-[165px] h-10">
+                <SelectValue placeholder="Select Bike" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectLabel>Bike Models</SelectLabel>
+                  {BIKES.map((bike) => (
+                    <SelectItem key={bike.id} value={bike.value}>
+                      {bike.label}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+
+            <Select value={activeBrand} onValueChange={(val) => onBrandChange?.(val as string)}>
+              <SelectTrigger className="w-full sm:w-[150px] h-10">
                 <SelectValue placeholder="Select Brand" />
               </SelectTrigger>
               <SelectContent>
                 <SelectGroup>
-                  <SelectLabel>Motorcycle Brands</SelectLabel>
-                  {BIKES.map((bike) => (
-                    <SelectItem key={bike.id} value={bike.name}>
-                      {bike.name}
+                  <SelectLabel>Brands</SelectLabel>
+                  {BRANDS.map((brand) => (
+                    <SelectItem key={brand.id} value={brand.value}>
+                      {brand.label}
                     </SelectItem>
                   ))}
                 </SelectGroup>
@@ -144,8 +150,11 @@ export function WholesaleHero({
               <Button
                 type="button"
                 variant="outline"
-                onClick={onClearFilters}
-                className="h-10 px-3 border-dashed border-neutral-300 text-neutral-600 hover:text-neutral-900 hover:bg-neutral-50 text-xs font-medium cursor-pointer flex items-center justify-center gap-1.5 shrink-0"
+                onClick={() => {
+                  setSearchInput("");
+                  onClearFilters();
+                }}
+                className="h-10 px-3 text-xs text-neutral-600 hover:text-neutral-900 border-neutral-300 gap-1.5 cursor-pointer shrink-0"
               >
                 <RotateCcw className="size-3.5" />
                 <span>Clear Filters</span>

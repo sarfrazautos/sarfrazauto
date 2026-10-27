@@ -15,10 +15,12 @@ function WholesaleShopContent() {
   const searchParams = useSearchParams();
   const brandParam = searchParams.get("brand");
   const categoryParam = searchParams.get("category");
+  const bikeParam = searchParams.get("bike") || searchParams.get("model");
 
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState("All");
-  const [activeBike, setActiveBike] = useState("All Brands");
+  const [activeBrand, setActiveBrand] = useState("All Brands");
+  const [activeBike, setActiveBike] = useState("All Bikes");
   const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
@@ -39,16 +41,46 @@ function WholesaleShopContent() {
           ? "Super Star"
           : lower === "unique"
           ? "Unique"
+          : lower === "all" || lower === "all brands"
+          ? "All Brands"
           : brandParam;
-      setActiveBike(mapped);
+      setActiveBrand(mapped);
+      setCurrentPage(1);
+    }
+    if (bikeParam) {
+      const lowerBike = bikeParam.toLowerCase();
+      const mappedBike =
+        lowerBike.includes("70")
+          ? "70cc"
+          : lowerBike.includes("100")
+          ? "100cc"
+          : lowerBike.includes("110")
+          ? "110cc"
+          : lowerBike.includes("125")
+          ? "125cc"
+          : lowerBike.includes("150")
+          ? "150cc"
+          : lowerBike.includes("all models") || lowerBike.includes("universal")
+          ? "All Models"
+          : bikeParam;
+      setActiveBike(mappedBike);
       setCurrentPage(1);
     }
     if (categoryParam) {
-      const mappedCat = normalizeCategory(categoryParam);
-      setActiveCategory(mappedCat);
+      const lowerCat = categoryParam.toLowerCase();
+      if (lowerCat === "cd70" || lowerCat === "cd-70") {
+        setActiveBike("70cc");
+        setActiveCategory("All");
+      } else if (lowerCat === "cg125" || lowerCat === "cg-125") {
+        setActiveBike("125cc");
+        setActiveCategory("All");
+      } else {
+        const mappedCat = normalizeCategory(categoryParam);
+        setActiveCategory(mappedCat);
+      }
       setCurrentPage(1);
     }
-  }, [brandParam, categoryParam]);
+  }, [brandParam, categoryParam, bikeParam]);
 
   const handleSearchSubmit = (val: string) => {
     setSearchQuery(val);
@@ -60,6 +92,11 @@ function WholesaleShopContent() {
     setCurrentPage(1);
   };
 
+  const handleBrandChange = (brand: string) => {
+    setActiveBrand(brand);
+    setCurrentPage(1);
+  };
+
   const handleBikeChange = (bike: string) => {
     setActiveBike(bike);
     setCurrentPage(1);
@@ -68,7 +105,8 @@ function WholesaleShopContent() {
   const handleClearFilters = () => {
     setSearchQuery("");
     setActiveCategory("All");
-    setActiveBike("All Brands");
+    setActiveBrand("All Brands");
+    setActiveBike("All Bikes");
     setCurrentPage(1);
   };
 
@@ -110,6 +148,8 @@ function WholesaleShopContent() {
         onSearchSubmit={handleSearchSubmit}
         activeCategory={activeCategory}
         onCategoryChange={handleCategoryChange}
+        activeBrand={activeBrand}
+        onBrandChange={handleBrandChange}
         activeBike={activeBike}
         onBikeChange={handleBikeChange}
         onClearFilters={handleClearFilters}
@@ -117,6 +157,7 @@ function WholesaleShopContent() {
       <WholesaleCatalog
         searchQuery={searchQuery}
         activeCategory={activeCategory}
+        activeBrand={activeBrand}
         activeBike={activeBike}
         currentPage={currentPage}
         onPageChange={setCurrentPage}
