@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { AlertCircle, Check, Copy, Loader2, UploadCloud, X, QrCode } from "lucide-react";
+import { AlertCircle, Check, Copy, Loader2, UploadCloud, X, Smartphone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
@@ -32,15 +32,14 @@ export const BANK_ACCOUNTS = [
   },
   {
     id: "jazzcash",
-    name: "JazzCash / Raast QR",
-    badge: "Till ID & Raast QR",
+    name: "JazzCash / Raast",
+    badge: "Till ID & Raast",
     title: "SARFARAZ AUTOS",
     accountNumber: "983205868",
     iban: "Till ID: 983205868",
-    branch: "Till ID / Raast QR Code",
-    instructions: "Dial *786*10# and enter Till ID 983205868, or scan the official Raast QR code with any banking app.",
-    type: "qr",
-    qrImage: "/jazzcash-raast-qr.jpg",
+    branch: "Till ID / Raast Payment",
+    instructions: "Dial *786*10# and enter Till ID 983205868 to pay via JazzCash, or pay via Raast P2M using Till ID 983205868.",
+    type: "till",
   },
 ];
 
@@ -137,7 +136,7 @@ export function BankTransferForm({
                   <span className="text-xs font-semibold text-foreground block">
                     {bank.name}
                   </span>
-                  {bank.id === "jazzcash" && <QrCode className="size-3.5 text-neutral-500" />}
+                  {bank.id === "jazzcash" && <Smartphone className="size-3.5 text-neutral-500" />}
                 </div>
                 <span className="text-[10px] text-muted-foreground mt-1 block">
                   {bank.badge}
@@ -161,25 +160,16 @@ export function BankTransferForm({
           </span>
         </div>
 
-        {currentBank.qrImage && (
-          <div className="flex flex-col sm:flex-row items-center gap-4 p-4 rounded-xl bg-amber-50/70 border border-amber-200">
-            <div className="size-36 sm:size-40 rounded-xl overflow-hidden bg-white p-1 border border-amber-300 shrink-0 shadow-2xs">
-              <img
-                src={currentBank.qrImage}
-                alt="JazzCash Raast QR Code"
-                className="w-full h-full object-contain"
-              />
-            </div>
-            <div className="text-xs text-neutral-700 space-y-1.5 text-center sm:text-left">
-              <span className="font-bold text-neutral-900 text-sm block">
-                Scan Raast QR / Pay via Till ID
-              </span>
-              <p className="text-neutral-600 leading-relaxed">
-                Scan this QR code with <strong>JazzCash, Easypaisa, or ANY Pakistani banking app</strong> using Raast P2M payment.
-              </p>
-              <div className="inline-block px-3 py-1 rounded-md bg-white border border-amber-300 font-mono text-amber-900 font-bold text-xs mt-1">
-                Dial *786*10# &bull; Till ID: 983205868
-              </div>
+        {currentBank.id === "jazzcash" && (
+          <div className="p-4 rounded-xl bg-amber-50/70 border border-amber-200 text-xs text-neutral-800 space-y-2">
+            <span className="font-bold text-neutral-900 text-sm block">
+              JazzCash Till ID &amp; Raast Payment
+            </span>
+            <p className="text-neutral-600 leading-relaxed">
+              Dial <strong className="text-neutral-900">*786*10#</strong> and enter Till ID <strong className="text-neutral-900">983205868</strong> to pay via your JazzCash account, or transfer via Raast using Till ID <strong className="text-neutral-900">983205868</strong>.
+            </p>
+            <div className="inline-block px-3 py-1.5 rounded-md bg-white border border-amber-300 font-mono text-amber-900 font-bold text-xs">
+              Till ID: 983205868 &bull; USSD: *786*10#
             </div>
           </div>
         )}
