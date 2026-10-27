@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Button } from "../ui/button";
 import { getProducts } from "@/lib/api/products";
+import { getBrandLogo } from "@/lib/brand-logos";
 import { useCartStore } from "@/lib/store/cart-store";
 
 export function RetailProducts({
@@ -110,6 +111,7 @@ export function RetailProducts({
               const productHref = product.slug
                 ? `/product-overview/${product.slug}`
                 : `/product-overview?id=${product.id}`;
+              const brandLogo = getBrandLogo(product.brand, product.name);
 
               return (
                 <div key={product.id} className="group flex flex-col border rounded-2xl">
@@ -121,6 +123,16 @@ export function RetailProducts({
                       <span className="absolute top-3.5 left-3.5 text-xs font-semibold px-2.5 py-0.5 rounded-full z-10 bg-red-100 text-red-600">
                         {product.badge}
                       </span>
+                    )}
+                    {brandLogo && (
+                      <div className="absolute top-2.5 right-2.5 z-10 size-8 md:size-10 rounded-full flex items-center justify-center shadow-2xs group-hover:bg-white transition-colors">
+                        <img
+                          src={brandLogo}
+                          alt={product.brand || "Brand"}
+                          className="size-full rounded-full object-contain"
+                          loading="lazy"
+                        />
+                      </div>
                     )}
                     <img
                       src={primaryImage}

@@ -101,19 +101,29 @@ export async function GET(req: Request) {
 
     const schemeMap = new Map()
     for (const s of activeSchemes) {
-      schemeMap.set(s.productId.toString(), {
+      const schemeObj = {
         id: s.id,
         buyQty: s.buyQty,
         freeQty: s.freeQty,
         status: s.status,
         title: `Buy ${s.buyQty} + ${s.freeQty} Free`,
-      })
+      }
+      if (s.productId) schemeMap.set(String(s.productId).trim().toLowerCase(), schemeObj)
+      if (s.productName) schemeMap.set(String(s.productName).trim().toLowerCase(), schemeObj)
     }
 
-    const itemsWithScheme = items.map((p) => ({
-      ...p,
-      scheme: schemeMap.get(p.id.toString()) || null,
-    }))
+    const itemsWithScheme = items.map((p) => {
+      const matchedScheme =
+        schemeMap.get(String(p.id)) ||
+        schemeMap.get(String(p.name || "").trim().toLowerCase()) ||
+        (p.slug ? schemeMap.get(String(p.slug).trim().toLowerCase()) : null) ||
+        null
+
+      return {
+        ...p,
+        scheme: matchedScheme,
+      }
+    })
 
     return NextResponse.json({
       success: true,

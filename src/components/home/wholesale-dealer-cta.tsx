@@ -1,9 +1,9 @@
 "use client"
 
 import Link from "next/link"
+import Image from "next/image"
 import { Package, ShieldCheck, ArrowRight, Sparkles, Truck, Store, LogIn } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
 import { useSession } from "@/lib/auth-client"
 
 export function WholesaleDealerCta() {
@@ -13,11 +13,19 @@ export function WholesaleDealerCta() {
   return (
     <section className="w-full py-16 md:py-20 bg-[#fafafa] border-y border-neutral-200/80">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="relative overflow-hidden rounded-3xl bg-neutral-950 text-white p-8 sm:p-12 lg:p-16 shadow-lg">
-          <div className="absolute top-0 right-0 -mt-12 -mr-12 w-96 h-96 bg-red-600/10 rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute bottom-0 left-0 -mb-12 -ml-12 w-96 h-96 bg-emerald-600/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="relative overflow-hidden rounded-3xl bg-neutral-950 text-white p-8 sm:p-12 lg:p-16 shadow-lg border border-neutral-800">
+          <div className="absolute inset-0 z-0 pointer-events-none select-none">
+            <Image
+              src="/b2b-banner.jpg"
+              alt="Direct Factory Master Carton Supply"
+              fill
+              className="object-cover object-right"
+              priority
+            />
+            <div className="absolute inset-0 bg-gradient-to-r from-neutral-950 via-neutral-950/85 to-transparent" />
+          </div>
 
-          <div className="relative z-10 max-w-3xl">
+          <div className="relative z-10 max-w-2xl lg:max-w-3xl">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-600/20 text-red-400 border border-red-500/30 text-xs font-semibold uppercase tracking-wider mb-5">
               <Store className="size-3.5" />
               <span>B2B Wholesale &amp; Dealer Counter</span>
@@ -90,11 +98,6 @@ export function WholesaleDealerCta() {
                   </Link>
                 </>
               )}
-
-              <div className="flex items-center gap-2 text-xs text-neutral-400 sm:ml-3">
-                <ShieldCheck className="size-4 text-emerald-500 shrink-0" />
-                <span>Protected dealer-only pricing</span>
-              </div>
             </div>
           </div>
         </div>

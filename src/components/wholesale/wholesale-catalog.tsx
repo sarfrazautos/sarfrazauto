@@ -7,6 +7,7 @@ import { Check, Eye, PackageOpen, Plus, Star } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { getBrandLogo } from "@/lib/brand-logos";
 import { Button } from "@/components/ui/button";
 import {
   Pagination,
@@ -184,6 +185,7 @@ export function WholesaleCatalog({
               const productHref = product.slug
                 ? `/wholesale-product-overview/${product.slug}`
                 : `/wholesale-product-overview?id=${product.id}`;
+              const brandLogo = getBrandLogo(product.brand, product.name);
 
               return (
                 <div key={product.id} className="group border rounded-2xl flex flex-col">
@@ -200,6 +202,16 @@ export function WholesaleCatalog({
                         {product.badge}
                       </span>
                     ) : null}
+                    {brandLogo && (
+                      <div className="absolute top-2.5 right-2.5 z-10 size-8 md:size-10 rounded-full flex items-center justify-center shadow-2xs group-hover:bg-white transition-colors">
+                        <img
+                          src={brandLogo}
+                          alt={product.brand || "Brand"}
+                          className="size-full rounded-full object-contain"
+                          loading="lazy"
+                        />
+                      </div>
+                    )}
                     <img
                       src={primaryImage}
                       alt={product.name}

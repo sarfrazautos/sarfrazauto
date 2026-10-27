@@ -58,8 +58,12 @@ export async function GET(
       .from(schemes)
       .where(
         and(
-          eq(schemes.productId, product.id.toString()),
-          eq(schemes.status, "Active")
+          eq(schemes.status, "Active"),
+          or(
+            eq(schemes.productId, product.id.toString()),
+            eq(schemes.productName, product.name),
+            eq(schemes.productId, product.slug || "")
+          )
         )
       )
       .limit(1)

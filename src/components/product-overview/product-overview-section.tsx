@@ -22,6 +22,7 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { getColorHex } from "@/lib/product-colors";
 import { getProductById, getProducts } from "@/lib/api/products";
+import { getBrandLogo } from "@/lib/brand-logos";
 import { useCartStore } from "@/lib/store/cart-store";
 import RelatedProducts from "./related-products";
 
@@ -201,6 +202,7 @@ function ProductOverviewContent({
   const stockStatusText = (product.stockStatus || "instock").toLowerCase();
   const isOutOfStock = stockStatusText === "outofstock" || stockStatusText === "out of stock";
   const isLowStock = stockStatusText === "lowstock" || stockStatusText === "low stock";
+  const brandLogo = getBrandLogo(product.brand, product.name);
 
   return (
     <>
@@ -238,6 +240,16 @@ function ProductOverviewContent({
                   <div className="absolute top-4 left-4 z-10 inline-flex items-center gap-1.5 bg-emerald-600 text-white text-xs font-semibold px-3 py-1.5 rounded-full shadow-xs">
                     <LuSparkles className="size-3.5" />
                     <span>Scheme: Buy {product.scheme.buyQty} + {product.scheme.freeQty} Free</span>
+                  </div>
+                )}
+                {brandLogo && (
+                  <div className="absolute top-4 right-4 z-10 size-11 md:size-14 rounded-full flex items-center justify-center shadow-2xs group-hover:bg-white transition-colors">
+                    <img
+                      src={brandLogo}
+                      alt={product.brand || "Brand"}
+                      className="size-full rounded-full object-contain"
+                      loading="lazy"
+                    />
                   </div>
                 )}
                 <img
