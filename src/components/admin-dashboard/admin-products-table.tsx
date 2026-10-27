@@ -48,6 +48,7 @@ export function AdminProductsTable() {
         limit,
         search: searchQuery,
         type: typeFilter === "All" ? "" : typeFilter.toLowerCase(),
+        exact: "true",
       },
     ],
     queryFn: () =>
@@ -56,6 +57,7 @@ export function AdminProductsTable() {
         limit,
         search: searchQuery,
         type: typeFilter === "All" ? "" : typeFilter.toLowerCase(),
+        exact: "true",
       }),
   })
 
@@ -89,6 +91,17 @@ export function AdminProductsTable() {
     return <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200 text-xs">Out of Stock</Badge>
   }
 
+  const getTypeBadge = (typeVal: string) => {
+    const t = (typeVal || "").toLowerCase()
+    if (t === "both") {
+      return <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200 text-xs">Both</Badge>
+    }
+    if (t === "wholesale") {
+      return <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 text-xs">Wholesale</Badge>
+    }
+    return <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200 text-xs">Retail</Badge>
+  }
+
   const formatDate = (dateVal: any) => {
     if (!dateVal) return "—"
     try {
@@ -120,7 +133,7 @@ export function AdminProductsTable() {
             />
           </div>
           <div className="flex items-center gap-1">
-            {["All", "Retail", "Wholesale"].map((t) => (
+            {["All", "Retail", "Wholesale", "Both"].map((t) => (
               <button
                 key={t}
                 type="button"
@@ -188,7 +201,6 @@ export function AdminProductsTable() {
                     ? product.images[product.mainImageIndex || 0] || product.images[0]
                     : null
 
-                const isWholesale = (product.type || "").toLowerCase() === "wholesale"
 
                 return (
                   <TableRow key={product.id} className="text-xs hover:bg-neutral-50/70">
@@ -212,18 +224,7 @@ export function AdminProductsTable() {
                       </div>
                     </TableCell>
                     <TableCell className="text-neutral-600">{product.category}</TableCell>
-                    <TableCell>
-                      <Badge
-                        variant="outline"
-                        className={
-                          isWholesale
-                            ? "bg-blue-50 text-blue-700 border-blue-200 text-xs"
-                            : "bg-purple-50 text-purple-700 border-purple-200 text-xs"
-                        }
-                      >
-                        {isWholesale ? "Wholesale" : "Retail"}
-                      </Badge>
-                    </TableCell>
+                    <TableCell>{getTypeBadge(product.type)}</TableCell>
                     <TableCell className="font-semibold text-neutral-900 whitespace-nowrap">
                       Rs. {Number(product.price || 0).toLocaleString()}
                     </TableCell>

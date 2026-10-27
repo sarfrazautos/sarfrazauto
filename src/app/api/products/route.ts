@@ -15,6 +15,7 @@ export async function GET(req: Request) {
     const type = searchParams.get("type")?.trim().toLowerCase() || ""
     const category = searchParams.get("category")?.trim() || ""
     const brand = searchParams.get("brand")?.trim() || ""
+    const exact = searchParams.get("exact") === "true" || searchParams.get("exactType") === "true"
 
     const conditions = []
 
@@ -22,7 +23,11 @@ export async function GET(req: Request) {
       conditions.push(ilike(products.name, `%${search}%`))
     }
 
-    if (type === "wholesale") {
+    if (exact) {
+      if (type && type !== "all") {
+        conditions.push(eq(products.type, type))
+      }
+    } else if (type === "wholesale") {
       let session = null
       try {
         session = await auth.api.getSession({ headers: req.headers })

@@ -277,6 +277,7 @@ export function AdminUploadProductSection() {
                       <SelectContent>
                         <SelectItem value="retail">Retail (Single Unit)</SelectItem>
                         <SelectItem value="wholesale">Wholesale (Bulk)</SelectItem>
+                        <SelectItem value="both">Both (Retail & Wholesale)</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
