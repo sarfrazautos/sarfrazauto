@@ -37,6 +37,7 @@ import {
   RotateCcwIcon,
   FileSpreadsheetIcon,
   SparklesIcon,
+  PercentIcon,
 } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { ScrollArea } from "@/components/ui/scroll-area"
@@ -204,6 +205,22 @@ export function AdminSidebar({
                     >
                       <SparklesIcon className="size-4 shrink-0" />
                       <span>Trade Schemes</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+
+                  <SidebarMenuItem>
+                    <SidebarMenuButton
+                      isActive={pathname === "/admin/bulk-pricing"}
+                      render={<Link href="/admin/bulk-pricing" />}
+                      className={cn(
+                        "rounded-xl text-sm px-3 py-2 h-9 transition-colors",
+                        pathname === "/admin/bulk-pricing"
+                          ? "bg-neutral-900 text-white font-medium hover:bg-neutral-800 hover:text-white"
+                          : "text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900"
+                      )}
+                    >
+                      <PercentIcon className="size-4 shrink-0" />
+                      <span>Bulk Price Update</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 </SidebarMenu>
