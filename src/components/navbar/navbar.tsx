@@ -91,7 +91,7 @@ export function Navbar({ navigationData = defaultNavigation, className }: Navbar
     if (item.title === "Wholesale") {
       return {
         ...item,
-        title: isAuthenticated ? "Wholesale Catalog" : "Wholesale (Dealers)",
+        title: isAuthenticated ? "Wholesale" : "Wholesale (Dealers)",
         href: isAuthenticated ? "/wholesale" : "/signup",
       };
     }
