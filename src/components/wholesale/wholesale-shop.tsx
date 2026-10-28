@@ -24,11 +24,12 @@ import { WHATSAPP_RAW, WHATSAPP_DISPLAY } from "@/lib/constants";
 function WholesaleShopContent() {
   const { data: session, isPending } = useSession();
   const searchParams = useSearchParams();
+  const searchParam = searchParams.get("search") || searchParams.get("q") || "";
   const brandParam = searchParams.get("brand");
   const categoryParam = searchParams.get("category");
   const bikeParam = searchParams.get("bike") || searchParams.get("model");
 
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState(searchParam);
   const [activeCategory, setActiveCategory] = useState("All");
   const [activeBrand, setActiveBrand] = useState("All Brands");
   const [activeBike, setActiveBike] = useState("All Bikes");
@@ -110,7 +111,8 @@ function WholesaleShopContent() {
       }
       setCurrentPage(1);
     }
-  }, [brandParam, categoryParam, bikeParam]);
+    setSearchQuery(searchParam);
+  }, [searchParam, brandParam, categoryParam, bikeParam]);
 
   const handleSearchSubmit = (val: string) => {
     setSearchQuery(val);

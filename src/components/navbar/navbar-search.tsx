@@ -28,11 +28,18 @@ export function NavbarSearch() {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
+    const params = new URLSearchParams();
     if (query.trim()) {
-      router.push(`/retail?search=${encodeURIComponent(query.trim())}`);
-    } else {
-      router.push("/retail");
+      params.set("search", query.trim());
     }
+    if (selectedVehicle) {
+      if (selectedVehicle.includes("70")) params.set("bike", "70cc");
+      else if (selectedVehicle.includes("125")) params.set("bike", "125cc");
+      else if (selectedVehicle.includes("150")) params.set("bike", "150cc");
+      else params.set("bike", selectedVehicle);
+    }
+    const qs = params.toString();
+    router.push(qs ? `/retail?${qs}` : "/retail");
   };
 
   return (

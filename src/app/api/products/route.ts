@@ -12,7 +12,7 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url)
     const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10))
     const limit = Math.max(1, parseInt(searchParams.get("limit") || "10", 10))
-    const search = searchParams.get("search")?.trim() || ""
+    const search = searchParams.get("search")?.trim() || searchParams.get("q")?.trim() || ""
     const type = searchParams.get("type")?.trim().toLowerCase() || ""
     const category = searchParams.get("category")?.trim() || ""
     const brand = searchParams.get("brand")?.trim() || ""
@@ -22,7 +22,21 @@ export async function GET(req: Request) {
     const conditions = []
 
     if (search) {
-      conditions.push(ilike(products.name, `%${search}%`))
+      const searchTerms = [search]
+      const cleanSearch = search.replace(/\s+/g, "")
+      if (cleanSearch !== search && cleanSearch.length >= 3) {
+        searchTerms.push(cleanSearch)
+      }
+
+      const searchConditions = searchTerms.flatMap((term) => [
+        ilike(products.name, `%${term}%`),
+        ilike(products.description, `%${term}%`),
+        ilike(products.category, `%${term}%`),
+        ilike(products.brand, `%${term}%`),
+        ilike(products.compatibleBike, `%${term}%`),
+      ])
+
+      conditions.push(or(...searchConditions))
     }
 
     if (exact) {

@@ -1,29 +1,35 @@
 "use client";
 
 import { useState, useEffect, Suspense } from "react";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import RetailHero from "./retail-hero";
 import RetailCatalog from "./retail-catalog";
 import { normalizeCategory } from "@/lib/category-mapper";
 
 function RetailShopContent() {
+  const router = useRouter();
   const searchParams = useSearchParams();
+  const searchParam = searchParams.get("search") || searchParams.get("q") || "";
   const brandParam = searchParams.get("brand");
   const categoryParam = searchParams.get("category");
   const bikeParam = searchParams.get("bike") || searchParams.get("model");
 
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState(searchParam);
   const [activeCategory, setActiveCategory] = useState("All");
   const [activeBrand, setActiveBrand] = useState("All Brands");
   const [activeBike, setActiveBike] = useState("All Bikes");
   const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
+    setSearchQuery(searchParam);
+
     if (brandParam) {
       const lower = brandParam.toLowerCase();
       const mapped =
         lower === "honda"
           ? "Honda"
+          : lower === "super-power" || lower === "super power"
+          ? "Super Power"
           : lower === "yamaha"
           ? "Yamaha"
           : lower === "suzuki"
@@ -32,7 +38,7 @@ function RetailShopContent() {
           ? "United"
           : lower === "crown"
           ? "Crown"
-          : lower === "super-star"
+          : lower === "super-star" || lower === "super star"
           ? "Super Star"
           : lower === "unique"
           ? "Unique"
@@ -40,8 +46,10 @@ function RetailShopContent() {
           ? "All Brands"
           : brandParam;
       setActiveBrand(mapped);
-      setCurrentPage(1);
+    } else {
+      setActiveBrand("All Brands");
     }
+
     if (bikeParam) {
       const lowerBike = bikeParam.toLowerCase();
       const mappedBike =
@@ -59,8 +67,10 @@ function RetailShopContent() {
           ? "All Models"
           : bikeParam;
       setActiveBike(mappedBike);
-      setCurrentPage(1);
+    } else {
+      setActiveBike("All Bikes");
     }
+
     if (categoryParam) {
       const lowerCat = categoryParam.toLowerCase();
       if (lowerCat === "cd70" || lowerCat === "cd-70") {
@@ -73,28 +83,65 @@ function RetailShopContent() {
         const mappedCat = normalizeCategory(categoryParam);
         setActiveCategory(mappedCat);
       }
-      setCurrentPage(1);
+    } else {
+      setActiveCategory("All");
     }
-  }, [brandParam, categoryParam, bikeParam]);
+
+    setCurrentPage(1);
+  }, [searchParam, brandParam, categoryParam, bikeParam]);
 
   const handleSearchSubmit = (val: string) => {
     setSearchQuery(val);
     setCurrentPage(1);
+    const params = new URLSearchParams(searchParams.toString());
+    if (val.trim()) {
+      params.set("search", val.trim());
+    } else {
+      params.delete("search");
+      params.delete("q");
+    }
+    const qs = params.toString();
+    router.replace(qs ? `/retail?${qs}` : "/retail");
   };
 
   const handleCategoryChange = (cat: string) => {
     setActiveCategory(cat);
     setCurrentPage(1);
+    const params = new URLSearchParams(searchParams.toString());
+    if (cat && cat !== "All") {
+      params.set("category", cat);
+    } else {
+      params.delete("category");
+    }
+    const qs = params.toString();
+    router.replace(qs ? `/retail?${qs}` : "/retail");
   };
 
   const handleBrandChange = (brand: string) => {
     setActiveBrand(brand);
     setCurrentPage(1);
+    const params = new URLSearchParams(searchParams.toString());
+    if (brand && brand !== "All Brands" && brand !== "All") {
+      params.set("brand", brand);
+    } else {
+      params.delete("brand");
+    }
+    const qs = params.toString();
+    router.replace(qs ? `/retail?${qs}` : "/retail");
   };
 
   const handleBikeChange = (bike: string) => {
     setActiveBike(bike);
     setCurrentPage(1);
+    const params = new URLSearchParams(searchParams.toString());
+    if (bike && bike !== "All Bikes" && bike !== "All") {
+      params.set("bike", bike);
+    } else {
+      params.delete("bike");
+      params.delete("model");
+    }
+    const qs = params.toString();
+    router.replace(qs ? `/retail?${qs}` : "/retail");
   };
 
   const handleClearFilters = () => {
@@ -103,6 +150,7 @@ function RetailShopContent() {
     setActiveBrand("All Brands");
     setActiveBike("All Bikes");
     setCurrentPage(1);
+    router.replace("/retail");
   };
 
   return (
