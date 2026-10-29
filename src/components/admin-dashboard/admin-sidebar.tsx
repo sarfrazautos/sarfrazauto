@@ -187,6 +187,20 @@ export function AdminSidebar({
                               <span>Add Product</span>
                             </SidebarMenuSubButton>
                           </SidebarMenuSubItem>
+                          <SidebarMenuSubItem>
+                            <SidebarMenuSubButton
+                              isActive={pathname === "/admin/products/excel-sync"}
+                              render={<Link href="/admin/products/excel-sync" />}
+                              className={cn(
+                                "rounded-lg text-xs px-2.5 py-1.5 h-8 transition-colors w-full",
+                                pathname === "/admin/products/excel-sync"
+                                  ? "bg-neutral-900 font-medium text-white hover:bg-neutral-900 hover:text-white"
+                                  : "text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900"
+                              )}
+                            >
+                              <span>Excel Price Sync</span>
+                            </SidebarMenuSubButton>
+                          </SidebarMenuSubItem>
                         </SidebarMenuSub>
                       </CollapsibleContent>
                     </SidebarMenuItem>
