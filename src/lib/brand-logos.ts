@@ -12,6 +12,21 @@ const BRAND_LOGOS: Record<string, string> = {
   superpower: "/brands-logo/super-power.png",
   sp: "/brands-logo/super-power.png",
   unique: "/brands-logo/unique.png",
+  servis: "/brands-logo/servis.png",
+  service: "/brands-logo/servis.png",
+  "servis tyres": "/brands-logo/servis.png",
+  "servis-tyres": "/brands-logo/servis.png",
+  panther: "/brands-logo/panther.png",
+  "panther tyres": "/brands-logo/panther.png",
+  "panther-tyres": "/brands-logo/panther.png",
+  diamond: "/brands-logo/diamond-tyres.png",
+  "diamond tyres": "/brands-logo/diamond-tyres.png",
+  "diamond-tyres": "/brands-logo/diamond-tyres.png",
+  general: "/brands-logo/general-tyre.png",
+  "general tyre": "/brands-logo/general-tyre.png",
+  "general-tyre": "/brands-logo/general-tyre.png",
+  "general tire": "/brands-logo/general-tyre.png",
+  "general-tire": "/brands-logo/general-tyre.png",
 }
 
 export function parseBrands(brandStr?: string | null): string[] {

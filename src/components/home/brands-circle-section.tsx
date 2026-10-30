@@ -49,6 +49,26 @@ const BRANDS = [
     image: "/brands-logo/unique.png",
     href: "/retail?brand=unique",
   },
+  {
+    name: "Servis",
+    image: "/brands-logo/servis.png",
+    href: "/retail?brand=servis",
+  },
+  {
+    name: "Panther",
+    image: "/brands-logo/panther.png",
+    href: "/retail?brand=panther",
+  },
+  {
+    name: "Diamond Tyres",
+    image: "/brands-logo/diamond-tyres.png",
+    href: "/retail?brand=diamond-tyres",
+  },
+  {
+    name: "General Tyre",
+    image: "/brands-logo/general-tyre.png",
+    href: "/retail?brand=general-tyre",
+  },
 ]
 
 export function BrandsCircleSection() {
