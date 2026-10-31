@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { db } from "@/lib/db"
 import { orders } from "@/db/schema/orders"
 import { eq, ilike, and, or, inArray, desc, count } from "drizzle-orm"
+import { sendOrderWhatsAppAlerts } from "@/lib/whatsapp"
 
 export async function GET(req: Request) {
   try {
@@ -119,6 +120,19 @@ export async function POST(req: Request) {
         notes: body.notes ? body.notes.trim() : null,
       } as any)
       .returning()
+
+    try {
+      await sendOrderWhatsAppAlerts({
+        orderNumber: created.orderNumber,
+        customerName: created.customerName,
+        customerPhone: created.customerPhone,
+        customerCity: created.customerCity,
+        totalAmount: created.totalAmount,
+        orderType: created.orderType,
+        items: created.items as any[],
+        notes: created.notes,
+      })
+    } catch {}
 
     return NextResponse.json(
       { success: true, order: created },

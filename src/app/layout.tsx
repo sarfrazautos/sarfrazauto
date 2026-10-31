@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 import LenisScroll from "@/components/lenis";
 import QueryProvider from "@/providers/query-provider";
 import { Toaster } from "@/components/ui/sonner";
+import { FloatingWhatsAppButton } from "@/components/whatsapp-floating-button";
 
 const dmSans = DM_Sans({
   subsets: ["latin"],
@@ -42,6 +43,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             {children}
           </LenisScroll>
         </QueryProvider>
+        <FloatingWhatsAppButton />
         <Toaster position="bottom-right" richColors />
       </body>
     </html>
