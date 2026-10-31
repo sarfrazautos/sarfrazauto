@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react"
 import { usePathname } from "next/navigation"
+import Link from "next/link"
 import {
   Mic,
   MicOff,
@@ -14,6 +15,7 @@ import {
   RotateCcw,
   AlertCircle,
   Pencil,
+  ExternalLink,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -389,49 +391,68 @@ export function AiVoiceAssistant() {
                       <span className="text-[10px] font-semibold text-neutral-500 uppercase tracking-wider">
                         Available Products ({m.products.length})
                       </span>
-                      {m.products.map((p) => (
-                        <div
-                          key={p.id}
-                          className="p-2.5 rounded-xl border border-neutral-200 bg-white hover:border-neutral-300 transition-colors flex items-center gap-2.5 shadow-2xs"
-                        >
-                          <img
-                            src={p.images?.[0] || "/bike-engine.png"}
-                            alt={p.name}
-                            className="size-11 object-contain rounded-lg bg-neutral-50 p-1 border border-neutral-100 shrink-0"
-                          />
-                          <div className="flex-1 min-w-0">
-                            <h4 className="text-xs font-semibold text-neutral-900 truncate">{p.name}</h4>
-                            <div className="flex items-center gap-1.5 mt-0.5">
-                              <span className="text-xs font-bold text-red-600">
-                                Rs. {Number(p.price).toLocaleString()}
-                              </span>
-                              {p.brand && (
-                                <span className="text-[10px] text-neutral-500 bg-neutral-100 px-1.5 py-0.2 rounded">
-                                  {p.brand}
-                                </span>
-                              )}
+                      {m.products.map((p) => {
+                        const productHref = p.slug
+                          ? `/product-overview/${p.slug}`
+                          : `/product-overview?id=${p.id}`
+
+                        return (
+                          <div
+                            key={p.id}
+                            className="p-2.5 rounded-xl border border-neutral-200 bg-white hover:border-neutral-300 transition-colors shadow-2xs space-y-1.5"
+                          >
+                            <div className="flex items-center gap-2.5">
+                              <img
+                                src={p.images?.[0] || "/bike-engine.png"}
+                                alt={p.name}
+                                className="size-11 object-contain rounded-lg bg-neutral-50 p-1 border border-neutral-100 shrink-0"
+                              />
+                              <div className="flex-1 min-w-0">
+                                <h4 className="text-xs font-semibold text-neutral-900 truncate">{p.name}</h4>
+                                <div className="flex items-center gap-1.5 mt-0.5">
+                                  <span className="text-xs font-bold text-red-600">
+                                    Rs. {Number(p.price).toLocaleString()}
+                                  </span>
+                                  {p.brand && (
+                                    <span className="text-[10px] text-neutral-500 bg-neutral-100 px-1.5 py-0.2 rounded">
+                                      {p.brand}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-1 shrink-0">
+                                <Button
+                                  size="icon"
+                                  variant="outline"
+                                  onClick={() => handleAddToCart(p)}
+                                  title="Add to Cart"
+                                  className="size-7 rounded-lg cursor-pointer"
+                                >
+                                  <ShoppingCart className="size-3.5" />
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  onClick={() => handleOpenOrderModal(p)}
+                                  className="h-7 px-2 text-[11px] bg-red-600 hover:bg-red-700 text-white rounded-lg cursor-pointer"
+                                >
+                                  Order
+                                </Button>
+                              </div>
+                            </div>
+
+                            <div className="pt-1 border-t border-neutral-100 flex items-center justify-between">
+                              <Link
+                                href={productHref}
+                                target="_blank"
+                                className="text-[11px] text-neutral-500 hover:text-red-600 font-medium inline-flex items-center gap-1 transition-colors"
+                              >
+                                View product
+                                <ExternalLink className="size-3" />
+                              </Link>
                             </div>
                           </div>
-                          <div className="flex items-center gap-1 shrink-0">
-                            <Button
-                              size="icon"
-                              variant="outline"
-                              onClick={() => handleAddToCart(p)}
-                              title="Add to Cart"
-                              className="size-7 rounded-lg cursor-pointer"
-                            >
-                              <ShoppingCart className="size-3.5" />
-                            </Button>
-                            <Button
-                              size="sm"
-                              onClick={() => handleOpenOrderModal(p)}
-                              className="h-7 px-2 text-[11px] bg-red-600 hover:bg-red-700 text-white rounded-lg cursor-pointer"
-                            >
-                              Order
-                            </Button>
-                          </div>
-                        </div>
-                      ))}
+                        )
+                      })}
                     </div>
                   )}
                 </div>
