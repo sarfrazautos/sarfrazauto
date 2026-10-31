@@ -476,40 +476,80 @@ export function AiVoiceAssistant() {
             <div ref={messagesEndRef} />
           </div>
 
-          <div className="p-3 bg-white border-t border-neutral-200 flex items-center gap-2">
-            <Button
-              type="button"
-              onClick={toggleListening}
-              variant={isListening ? "default" : "outline"}
-              className={`size-10 rounded-2xl shrink-0 cursor-pointer ${isListening
-                ? "bg-red-600 text-white animate-pulse"
-                : "hover:bg-red-50 hover:text-red-600 hover:border-red-200"
-                }`}
-            >
-              {isListening ? <MicOff className="size-4" /> : <Mic className="size-4" />}
-            </Button>
+          <div className="p-3 bg-white border-t border-neutral-200 space-y-2">
+            <div className="flex items-center justify-between text-[11px] px-0.5">
+              <span className="inline-flex items-center gap-1.5 font-medium text-neutral-600">
+                <span className="relative flex size-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full size-2 bg-red-600"></span>
+                </span>
+                {isListening ? (
+                  <span className="text-red-600 font-semibold animate-pulse">Sun raha hai... Bolain!</span>
+                ) : (
+                  <span>Mic par click karein aur bolain (Click &amp; Speak)</span>
+                )}
+              </span>
+              <span className="text-[10px] text-neutral-400">Urdu / English</span>
+            </div>
 
-            <Input
-              placeholder="Bolain ya likhein (e.g. CD 70 chain sprocket)..."
-              value={inputText}
-              onChange={(e) => setInputText(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault()
-                  handleSendMessage()
-                }
-              }}
-              className="h-10 text-xs bg-neutral-50 rounded-xl"
-            />
+            <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                onClick={toggleListening}
+                variant={isListening ? "default" : "outline"}
+                title={isListening ? "Stop listening" : "Click & Speak"}
+                className={`size-10 rounded-2xl shrink-0 cursor-pointer transition-all ${isListening
+                  ? "bg-red-600 text-white shadow-xs animate-pulse ring-2 ring-red-400 ring-offset-1"
+                  : "border-red-200 bg-red-50/50 text-red-600 hover:bg-red-100 hover:text-red-700 hover:border-red-300"
+                  }`}
+              >
+                {isListening ? <MicOff className="size-4" /> : <Mic className="size-4 text-red-600" />}
+              </Button>
 
-            <Button
-              type="button"
-              disabled={loading || !inputText.trim()}
-              onClick={() => handleSendMessage()}
-              className="size-10 rounded-2xl bg-neutral-900 hover:bg-neutral-800 text-white shrink-0 cursor-pointer"
-            >
-              <Send className="size-4" />
-            </Button>
+              {isListening ? (
+                <div
+                  onClick={toggleListening}
+                  className="flex-1 h-10 px-3 bg-red-50/80 border border-red-200 rounded-xl flex items-center justify-between cursor-pointer"
+                >
+                  <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-0.5">
+                      <span className="w-1 h-3 bg-red-600 rounded-full animate-pulse"></span>
+                      <span className="w-1 h-5 bg-red-600 rounded-full animate-pulse delay-75"></span>
+                      <span className="w-1 h-2 bg-red-600 rounded-full animate-pulse delay-150"></span>
+                      <span className="w-1 h-4 bg-red-600 rounded-full animate-pulse delay-100"></span>
+                    </div>
+                    <span className="text-xs font-semibold text-red-700 animate-pulse">
+                      Aapki aawaz sun raha hai...
+                    </span>
+                  </div>
+                  <span className="text-[10px] text-red-600 font-medium underline">
+                    Stop
+                  </span>
+                </div>
+              ) : (
+                <Input
+                  placeholder="Bolain ya likhein (e.g. CD 70 chain sprocket)..."
+                  value={inputText}
+                  onChange={(e) => setInputText(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault()
+                      handleSendMessage()
+                    }
+                  }}
+                  className="h-10 text-xs bg-neutral-50 rounded-xl"
+                />
+              )}
+
+              <Button
+                type="button"
+                disabled={loading || !inputText.trim()}
+                onClick={() => handleSendMessage()}
+                className="size-10 rounded-2xl bg-neutral-900 hover:bg-neutral-800 text-white shrink-0 cursor-pointer"
+              >
+                <Send className="size-4" />
+              </Button>
+            </div>
           </div>
         </div>
       )}

@@ -33,7 +33,7 @@ export async function POST(req: Request) {
       })
     }
 
-    const apiKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY || process.env.GEMINI_API_KEY
+    const apiKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY
     if (!apiKey) {
       return NextResponse.json({ error: "Google AI API key not configured" }, { status: 500 })
     }
