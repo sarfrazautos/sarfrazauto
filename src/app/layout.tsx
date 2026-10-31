@@ -5,6 +5,7 @@ import LenisScroll from "@/components/lenis";
 import QueryProvider from "@/providers/query-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { FloatingWhatsAppButton } from "@/components/whatsapp-floating-button";
+import { AiVoiceAssistant } from "@/components/ai-voice-assistant";
 
 const dmSans = DM_Sans({
   subsets: ["latin"],
@@ -44,6 +45,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           </LenisScroll>
         </QueryProvider>
         <FloatingWhatsAppButton />
+        <AiVoiceAssistant />
         <Toaster position="bottom-right" richColors />
       </body>
     </html>
