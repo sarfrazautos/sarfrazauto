@@ -21,13 +21,19 @@ import { useCart } from "@/lib/store/cart-store";
 
 export function RetailCart({ className = "" }: { className?: string }) {
   const { retailItems, retailCount, updateQuantity, removeItem } = useCart();
-  const [couponCode, setCouponCode] = useState("SARFRAZ10");
-  const [couponApplied, setCouponApplied] = useState(true);
+  const [couponCode, setCouponCode] = useState("");
+  const [couponApplied, setCouponApplied] = useState(false);
+  const [couponError, setCouponError] = useState("");
 
   const handleApplyCoupon = (e: React.FormEvent) => {
     e.preventDefault();
-    if (couponCode.trim().toUpperCase() === "SARFRAZ10") {
+    setCouponError("");
+    const trimmed = couponCode.trim().toUpperCase();
+    if (!trimmed) return;
+    if (trimmed === "SARFRAZ10") {
       setCouponApplied(true);
+    } else {
+      setCouponError("Invalid promo code");
     }
   };
 
@@ -171,7 +177,10 @@ export function RetailCart({ className = "" }: { className?: string }) {
                   <input
                     type="text"
                     value={couponCode}
-                    onChange={(e) => setCouponCode(e.target.value)}
+                    onChange={(e) => {
+                      setCouponCode(e.target.value);
+                      if (couponError) setCouponError("");
+                    }}
                     placeholder="Enter promo code"
                     className="w-full h-10 pl-8 pr-3 rounded-lg border border-neutral-200 bg-white text-xs text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-1 focus:ring-neutral-950"
                   />
@@ -189,6 +198,11 @@ export function RetailCart({ className = "" }: { className?: string }) {
                 <p className="text-[11px] text-emerald-600 font-medium flex items-center gap-1">
                   <Check className="size-3" />
                   Code applied (-Rs. {discount.toLocaleString()})
+                </p>
+              )}
+              {couponError && (
+                <p className="text-[11px] text-red-600 font-medium">
+                  {couponError}
                 </p>
               )}
             </div>
