@@ -64,21 +64,38 @@ function getSavedLanguage() {
   return "en"
 }
 
+function clearGoogleTranslateCookies() {
+  if (typeof document === "undefined") return
+  const host = window.location.hostname
+  const parts = host.split(".")
+  const domains = ["", host, "." + host]
+  if (parts.length >= 2) {
+    const root = parts.slice(-2).join(".")
+    domains.push(root, "." + root)
+  }
+
+  domains.forEach((d) => {
+    const dAttr = d ? ` domain=${d};` : ""
+    document.cookie = `googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;${dAttr}`
+    document.cookie = `googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC;${dAttr}`
+  })
+}
+
 function applyGoogleLanguage(langCode: string) {
   const combo = document.querySelector(".goog-te-combo") as HTMLSelectElement | null
   if (combo) {
-    combo.value = langCode === "en" ? "" : langCode
+    combo.value = langCode
     combo.dispatchEvent(new Event("change"))
   }
 
   const hostname = window.location.hostname
-  if (!langCode || langCode === "en") {
-    document.cookie = `googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=${hostname};`
-    document.cookie = `googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`
-  } else {
-    document.cookie = `googtrans=/en/${langCode}; path=/; domain=${hostname};`
-    document.cookie = `googtrans=/en/${langCode}; path=/;`
-  }
+  const parts = hostname.split(".")
+  const root = parts.length >= 2 ? parts.slice(-2).join(".") : hostname
+
+  document.cookie = `googtrans=/en/${langCode}; path=/;`
+  document.cookie = `googtrans=/en/${langCode}; path=/; domain=${hostname};`
+  document.cookie = `googtrans=/en/${langCode}; path=/; domain=.${hostname};`
+  document.cookie = `googtrans=/en/${langCode}; path=/; domain=.${root};`
 }
 
 export function LanguageSelector() {
@@ -132,6 +149,19 @@ export function LanguageSelector() {
   }, [isOpen])
 
   const handleSelect = (val: string) => {
+    if (val === currentLang) {
+      setIsOpen(false)
+      return
+    }
+
+    if (val === "en") {
+      clearGoogleTranslateCookies()
+      setCurrentLang("en")
+      setIsOpen(false)
+      window.location.reload()
+      return
+    }
+
     setCurrentLang(val)
     applyGoogleLanguage(val)
     setIsOpen(false)
