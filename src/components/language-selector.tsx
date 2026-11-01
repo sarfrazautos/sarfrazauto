@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react"
 import * as Flags from "country-flag-icons/react/3x2"
-import { Globe, Check } from "lucide-react"
+import { Globe, Check, ChevronDown } from "lucide-react"
 
 const LANGUAGES = [
   { value: "en", label: "English", flag: "GB" },
@@ -152,9 +152,14 @@ export function LanguageSelector() {
         title={currentObj.label}
         aria-expanded={isOpen}
         onClick={() => setIsOpen(!isOpen)}
-        className="bg-[#f7f7f7] text-black hover:bg-[#e5e5e5] border border-neutral-200 rounded-full sm:h-12 sm:w-12 h-10 w-10 flex items-center justify-center cursor-pointer shadow-xs transition-colors notranslate focus:outline-none"
+        className="bg-[#f7f7f7] text-black hover:bg-[#e5e5e5] border border-neutral-200 rounded-full h-10 sm:h-12 px-3 sm:px-3.5 flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer shadow-xs transition-colors notranslate focus:outline-none"
       >
         <FlagIcon code={currentObj.flag} />
+        <ChevronDown
+          className={`size-3.5 text-neutral-600 transition-transform duration-200 ${
+            isOpen ? "rotate-180" : ""
+          }`}
+        />
       </button>
 
       {isOpen && (
@@ -203,3 +208,4 @@ export function LanguageSelector() {
 }
 
 export default LanguageSelector
+
