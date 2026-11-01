@@ -308,7 +308,10 @@ export function AiVoiceAssistant() {
 
   return (
     <>
-      <div className="fixed bottom-5 right-5 z-50 flex items-center group pointer-events-auto select-none">
+      <aside
+        aria-label="AI Voice Assistant"
+        className="fixed bottom-5 right-5 z-50 flex items-center flex-row-reverse group pointer-events-auto select-none"
+      >
         <button
           onClick={() => setIsOpen(!isOpen)}
           aria-label="Open AI Voice Assistant"
@@ -320,10 +323,10 @@ export function AiVoiceAssistant() {
           </span>
         </button>
 
-        <div className="hidden sm:flex items-center mr-3 px-3 py-1.5 rounded-full bg-white text-neutral-800 text-xs font-semibold shadow-md border border-neutral-100 opacity-0 group-hover:opacity-100 transition-all pointer-events-none">
+        <div className="hidden sm:flex items-center mr-2.5 px-3 py-1.5 rounded-full bg-white text-neutral-800 text-xs font-semibold shadow-md border border-neutral-100 opacity-0 translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200 pointer-events-none">
           <span>AI Voice Assistant</span>
         </div>
-      </div>
+      </aside>
 
       {isOpen && (
         <div className="fixed bottom-22 right-4 sm:right-6 z-50 w-[92vw] sm:w-[410px] h-[560px] max-h-[85vh] bg-white rounded-3xl shadow-2xl border border-neutral-200 flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-5 duration-200">
