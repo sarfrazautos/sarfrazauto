@@ -162,3 +162,40 @@ img {
 .animate-marquee:hover {
   animation-play-state: paused;
 }
+
+html,
+body {
+  top: 0px !important;
+  position: static !important;
+  margin-top: 0px !important;
+}
+
+iframe.skiptranslate,
+iframe.goog-te-banner-frame,
+.goog-te-banner-frame,
+#goog-gt-tt,
+.goog-te-balloon-frame,
+div.skiptranslate iframe,
+body > .skiptranslate,
+iframe[id*=":1.container"],
+iframe[id*=":2.container"],
+iframe[class*="skiptranslate"],
+iframe[class*="goog-te-banner-frame"],
+iframe[style*="z-index: 2147483647"],
+iframe[style*="z-index: 10000000"],
+.VIpgJd-ZVi9od-ORHb-OEVmcb,
+.VIpgJd-ZVi9od-aZ2wEe-wOHMyf {
+  display: none !important;
+  visibility: hidden !important;
+  height: 0px !important;
+  width: 0px !important;
+  border: none !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  clip: rect(0, 0, 0, 0) !important;
+}
+
+.goog-text-highlight {
+  background-color: transparent !important;
+  box-shadow: none !important;
+}

@@ -6,6 +6,7 @@ import QueryProvider from "@/providers/query-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { FloatingWhatsAppButton } from "@/components/whatsapp-floating-button";
 import { AiVoiceAssistant } from "@/components/ai-voice-assistant";
+import { GoogleTranslateProvider } from "@/components/google-translate-provider";
 
 const dmSans = DM_Sans({
   subsets: ["latin"],
@@ -46,6 +47,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         </QueryProvider>
         <FloatingWhatsAppButton />
         <AiVoiceAssistant />
+        <GoogleTranslateProvider />
         <Toaster position="bottom-right" richColors />
       </body>
     </html>

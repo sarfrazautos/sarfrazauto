@@ -12,6 +12,7 @@ import { Equal, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, useInView, AnimatePresence } from "motion/react";
 import CartBadge from "@/components/cart-badge";
+import LanguageSelector from "@/components/language-selector";
 import NavbarSearch from "@/components/navbar/navbar-search";
 import TopTicker from "@/components/navbar/top-ticker";
 import SecondaryNavbar from "@/components/navbar/secondary-navbar";
@@ -176,6 +177,7 @@ export function Navbar({ navigationData = defaultNavigation, className }: Navbar
             </Link>
             <NavbarSearch />
             <div className="flex items-center gap-2.5 sm:gap-3">
+              <LanguageSelector />
               <CartBadge />
               <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
                 <DropdownMenuTrigger className="flex items-center justify-center rounded-full sm:h-12 sm:w-12 h-10 w-10 p-2.5 sm:p-4 outline-none cursor-pointer bg-neutral-100 text-neutral-900 border border-neutral-200 hover:bg-neutral-200 transition-colors">
