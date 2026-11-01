@@ -50,7 +50,7 @@ export function AdminOrderHistorySection() {
   const [currentPage, setCurrentPage] = useState(1)
   const [orderToDelete, setOrderToDelete] = useState<any | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
-  const [updatingId, setUpdatingId] = useState<number | null>(null)
+  const [updatingAction, setUpdatingAction] = useState<{ id: number; status: string } | null>(null)
 
   const limit = 20
 
@@ -78,16 +78,22 @@ export function AdminOrderHistorySection() {
   const totalPages = data?.pagination?.totalPages || 1
 
   const handleUpdateStatus = async (orderId: number, newStatus: string) => {
+    if (updatingAction) return
     try {
-      setUpdatingId(orderId)
+      setUpdatingAction({ id: orderId, status: newStatus })
       await updateOrderStatus(orderId, newStatus)
       queryClient.invalidateQueries({ queryKey: ["orders"] })
       toast.success(`Order marked as ${newStatus}`)
     } catch (err: any) {
       toast.error(err.message || "Failed to update order status")
     } finally {
-      setUpdatingId(null)
+      setUpdatingAction(null)
     }
+  }
+
+  const getOrderTotalQuantity = (items: any) => {
+    if (!Array.isArray(items) || items.length === 0) return 1
+    return items.reduce((sum: number, i: any) => sum + (Number(i.quantity) || 1), 0)
   }
 
   const handleConfirmDelete = async () => {
@@ -256,6 +262,7 @@ export function AdminOrderHistorySection() {
               <TableHead className="text-xs font-semibold text-neutral-700">Order ID</TableHead>
               <TableHead className="text-xs font-semibold text-neutral-700">Dealer / Customer</TableHead>
               <TableHead className="text-xs font-semibold text-neutral-700">Product</TableHead>
+              <TableHead className="text-xs font-semibold text-neutral-700 text-center">Qty</TableHead>
               <TableHead className="text-xs font-semibold text-neutral-700">Type</TableHead>
               <TableHead className="text-xs font-semibold text-neutral-700">Amount</TableHead>
               <TableHead className="text-xs font-semibold text-neutral-700">Status</TableHead>
@@ -266,7 +273,7 @@ export function AdminOrderHistorySection() {
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={8} className="text-center py-12 text-neutral-500">
+                <TableCell colSpan={9} className="text-center py-12 text-neutral-500">
                   <div className="flex flex-col items-center justify-center gap-2">
                     <Loader2 className="size-5 animate-spin text-neutral-400" />
                     <span className="text-xs">Loading orders...</span>
@@ -275,7 +282,7 @@ export function AdminOrderHistorySection() {
               </TableRow>
             ) : orders.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={8} className="text-center py-12 text-neutral-500">
+                <TableCell colSpan={9} className="text-center py-12 text-neutral-500">
                   <div className="flex flex-col items-center justify-center gap-2">
                     <PackageOpen className="size-8 text-neutral-300" />
                     <p className="text-xs font-medium text-neutral-700">No orders found</p>
@@ -288,7 +295,9 @@ export function AdminOrderHistorySection() {
             ) : (
               orders.map((order: any) => {
                 const isWholesale = (order.orderType || "").toLowerCase() === "wholesale"
-                const isThisUpdating = updatingId === order.id
+                const isThisUpdating = updatingAction?.id === order.id
+                const isAnyUpdating = Boolean(updatingAction)
+                const totalQty = getOrderTotalQuantity(order.items)
 
                 return (
                   <TableRow key={order.id} className="text-xs hover:bg-neutral-50/70">
@@ -301,8 +310,36 @@ export function AdminOrderHistorySection() {
                         )}
                       </div>
                     </TableCell>
-                    <TableCell className="text-neutral-600 max-w-[180px] truncate">
-                      {formatItems(order.items)}
+                    <TableCell className="text-neutral-700">
+                      {Array.isArray(order.items) && order.items.length > 0 ? (
+                        <div className="space-y-1 max-w-[220px]">
+                          {order.items.slice(0, 2).map((item: any, idx: number) => {
+                            const itemQty = Number(item.quantity) || 1
+                            return (
+                              <div key={idx} className="flex items-center gap-1.5 text-xs">
+                                <span className="truncate text-neutral-800 font-medium" title={item.name || item.title || "Part"}>
+                                  {item.name || item.title || "Part"}
+                                </span>
+                                <span className="font-bold text-neutral-900 shrink-0 bg-neutral-100 border border-neutral-200 px-1.5 py-0.2 rounded text-[10px]">
+                                  x{itemQty}
+                                </span>
+                              </div>
+                            )
+                          })}
+                          {order.items.length > 2 && (
+                            <span className="text-[10px] text-neutral-400 font-medium block">
+                              +{order.items.length - 2} more item{order.items.length - 2 > 1 ? "s" : ""}
+                            </span>
+                          )}
+                        </div>
+                      ) : (
+                        <span className="text-neutral-500">Auto Parts Package</span>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-center font-semibold text-neutral-900">
+                      <span className="inline-flex items-center justify-center min-w-[26px] h-6 px-1.5 rounded-md bg-neutral-100 text-neutral-800 font-bold text-xs border border-neutral-200">
+                        {totalQty}
+                      </span>
                     </TableCell>
                     <TableCell>
                       <Badge
@@ -319,71 +356,115 @@ export function AdminOrderHistorySection() {
                     <TableCell className="font-semibold text-neutral-900 whitespace-nowrap">
                       Rs. {Number(order.totalAmount || 0).toLocaleString()}
                     </TableCell>
-                    <TableCell>{statusBadge(order.status)}</TableCell>
+                    <TableCell>
+                      {isThisUpdating && updatingAction ? (
+                        <div className="flex items-center gap-1.5 text-xs text-neutral-600 bg-neutral-100 border border-neutral-200 px-2 py-1 rounded-md w-fit">
+                          <Loader2 className="size-3 animate-spin text-neutral-600" />
+                          <span className="capitalize">{updatingAction.status}...</span>
+                        </div>
+                      ) : (
+                        statusBadge(order.status)
+                      )}
+                    </TableCell>
                     <TableCell className="text-neutral-600 whitespace-nowrap">{formatDate(order.createdAt)}</TableCell>
                     <TableCell className="text-right pr-4">
                       <div className="flex items-center justify-end gap-1.5">
                         <button
                           type="button"
-                          disabled={isThisUpdating}
+                          disabled={isAnyUpdating}
                           onClick={() => handleUpdateStatus(order.id, "delivered")}
                           title="Mark Delivered"
-                          className={`p-1.5 rounded-lg border transition-all cursor-pointer ${
+                          className={`p-1.5 rounded-lg border transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed ${
                             (order.status || "").toLowerCase() === "delivered"
                               ? "bg-emerald-600 text-white border-emerald-600 shadow-2xs"
                               : "hover:bg-emerald-50 text-neutral-500 hover:text-emerald-700 border-neutral-200 hover:border-emerald-300"
                           }`}
                         >
-                          <Truck className="size-3.5" />
+                          {updatingAction?.id === order.id && updatingAction?.status === "delivered" ? (
+                            <Loader2 className="size-3.5 animate-spin" />
+                          ) : (
+                            <Truck className="size-3.5" />
+                          )}
                         </button>
 
                         <button
                           type="button"
-                          disabled={isThisUpdating}
+                          disabled={isAnyUpdating}
                           onClick={() => handleUpdateStatus(order.id, "processing")}
                           title="Mark Processing"
-                          className={`p-1.5 rounded-lg border transition-all cursor-pointer ${
+                          className={`p-1.5 rounded-lg border transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed ${
                             (order.status || "").toLowerCase() === "processing"
                               ? "bg-blue-600 text-white border-blue-600 shadow-2xs"
                               : "hover:bg-blue-50 text-neutral-500 hover:text-blue-700 border-neutral-200 hover:border-blue-300"
                           }`}
                         >
-                          <RefreshCw className="size-3.5" />
+                          {updatingAction?.id === order.id && updatingAction?.status === "processing" ? (
+                            <Loader2 className="size-3.5 animate-spin" />
+                          ) : (
+                            <RefreshCw className="size-3.5" />
+                          )}
                         </button>
 
                         <button
                           type="button"
-                          disabled={isThisUpdating}
+                          disabled={isAnyUpdating}
+                          onClick={() => handleUpdateStatus(order.id, "pending")}
+                          title="Mark Pending"
+                          className={`p-1.5 rounded-lg border transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed ${
+                            (order.status || "").toLowerCase() === "pending"
+                              ? "bg-amber-500 text-white border-amber-500 shadow-2xs"
+                              : "hover:bg-amber-50 text-neutral-500 hover:text-amber-700 border-neutral-200 hover:border-amber-300"
+                          }`}
+                        >
+                          {updatingAction?.id === order.id && updatingAction?.status === "pending" ? (
+                            <Loader2 className="size-3.5 animate-spin" />
+                          ) : (
+                            <Clock className="size-3.5" />
+                          )}
+                        </button>
+
+                        <button
+                          type="button"
+                          disabled={isAnyUpdating}
                           onClick={() => handleUpdateStatus(order.id, "cancelled")}
                           title="Mark Cancelled"
-                          className={`p-1.5 rounded-lg border transition-all cursor-pointer ${
+                          className={`p-1.5 rounded-lg border transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed ${
                             (order.status || "").toLowerCase() === "cancelled"
                               ? "bg-red-600 text-white border-red-600 shadow-2xs"
                               : "hover:bg-red-50 text-neutral-500 hover:text-red-700 border-neutral-200 hover:border-red-300"
                           }`}
                         >
-                          <Ban className="size-3.5" />
+                          {updatingAction?.id === order.id && updatingAction?.status === "cancelled" ? (
+                            <Loader2 className="size-3.5 animate-spin" />
+                          ) : (
+                            <Ban className="size-3.5" />
+                          )}
                         </button>
 
                         <button
                           type="button"
-                          disabled={isThisUpdating}
+                          disabled={isAnyUpdating}
                           onClick={() => handleUpdateStatus(order.id, "returned")}
                           title="Mark Returned"
-                          className={`p-1.5 rounded-lg border transition-all cursor-pointer ${
+                          className={`p-1.5 rounded-lg border transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed ${
                             (order.status || "").toLowerCase() === "returned"
                               ? "bg-purple-600 text-white border-purple-600 shadow-2xs"
                               : "hover:bg-purple-50 text-neutral-500 hover:text-purple-700 border-neutral-200 hover:border-purple-300"
                           }`}
                         >
-                          <RotateCcw className="size-3.5" />
+                          {updatingAction?.id === order.id && updatingAction?.status === "returned" ? (
+                            <Loader2 className="size-3.5 animate-spin" />
+                          ) : (
+                            <RotateCcw className="size-3.5" />
+                          )}
                         </button>
 
                         <button
                           type="button"
+                          disabled={isAnyUpdating}
                           onClick={() => setOrderToDelete(order)}
                           title="Delete Order"
-                          className="p-1.5 rounded-lg border border-neutral-200 text-neutral-400 hover:text-red-600 hover:bg-red-50 hover:border-red-200 transition-all cursor-pointer"
+                          className="p-1.5 rounded-lg border border-neutral-200 text-neutral-400 hover:text-red-600 hover:bg-red-50 hover:border-red-200 transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                         >
                           <Trash2 className="size-3.5" />
                         </button>

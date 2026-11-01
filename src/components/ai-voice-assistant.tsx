@@ -16,6 +16,8 @@ import {
   AlertCircle,
   Pencil,
   ExternalLink,
+  Plus,
+  Minus,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -51,6 +53,8 @@ export function AiVoiceAssistant() {
   >([defaultWelcomeMessage])
 
   const [orderModalProduct, setOrderModalProduct] = useState<any | null>(null)
+  const [orderModalQuantity, setOrderModalQuantity] = useState(1)
+  const [quantities, setQuantities] = useState<Record<number, number>>({})
   const [orderStep, setOrderStep] = useState<"form" | "confirm">("confirm")
   const [customerName, setCustomerName] = useState("")
   const [customerPhone, setCustomerPhone] = useState("")
@@ -210,20 +214,32 @@ export function AiVoiceAssistant() {
 
   handleSendMessageRef.current = handleSendMessage
 
+  const getProductQuantity = (id: number) => quantities[id] || 1
+
+  const updateProductQuantity = (id: number, delta: number) => {
+    setQuantities((prev) => {
+      const cur = prev[id] || 1
+      const next = Math.max(1, cur + delta)
+      return { ...prev, [id]: next }
+    })
+  }
+
   const handleAddToCart = (product: any) => {
+    const qty = getProductQuantity(product.id)
     addItem({
       productId: product.id,
       title: product.name,
       price: product.price,
-      quantity: 1,
+      quantity: qty,
       image: product.images?.[0] || "/bike-engine.png",
       type: "retail",
     })
-    toast.success(`Added ${product.name} to cart!`)
+    toast.success(`Added ${qty > 1 ? `${qty}x ` : ""}${product.name} to cart!`)
   }
 
   const handleOpenOrderModal = (product: any) => {
     setOrderModalProduct(product)
+    setOrderModalQuantity(getProductQuantity(product.id))
     const activeName = customerName || checkoutInfo.fullName || ""
     const activePhone = customerPhone || checkoutInfo.phone || ""
     const activeCity = customerCity || checkoutInfo.city || "Karachi"
@@ -280,8 +296,8 @@ export function AiVoiceAssistant() {
           customerName: customerName.trim(),
           customerPhone: customerPhone.trim(),
           customerCity: customerCity.trim() || "Karachi",
-          items: [{ ...orderModalProduct, quantity: 1 }],
-          notes: `Voice Order via AI Assistant for ${orderModalProduct.name}`,
+          items: [{ ...orderModalProduct, quantity: orderModalQuantity }],
+          notes: `Voice Order via AI Assistant for ${orderModalProduct.name} (Qty: ${orderModalQuantity})`,
         }),
       })
 
@@ -293,7 +309,7 @@ export function AiVoiceAssistant() {
           ...prev,
           {
             role: "assistant",
-            content: `Shukriya ${customerName || "Customer"}! Aapka order #${data.order.orderNumber} confirm ho chuka hai. Humare numainday aapse WhatsApp (${customerPhone}) par rabta karenge.`,
+            content: `Shukriya ${customerName || "Customer"}! Aapka order #${data.order.orderNumber} (${orderModalQuantity}x ${orderModalProduct.name}) confirm ho chuka hai. Humare numainday aapse WhatsApp (${customerPhone}) par rabta karenge.`,
           },
         ])
       } else {
@@ -379,7 +395,7 @@ export function AiVoiceAssistant() {
                   </div>
                 )}
 
-                <div className="max-w-[82%] space-y-2">
+                <div className="max-w-[88%] space-y-2">
                   <div
                     className={`p-3 rounded-2xl text-xs leading-relaxed ${m.role === "user"
                       ? "bg-red-600 text-white rounded-br-xs"
@@ -398,11 +414,12 @@ export function AiVoiceAssistant() {
                         const productHref = p.slug
                           ? `/product-overview/${p.slug}`
                           : `/product-overview?id=${p.id}`
+                        const qty = getProductQuantity(p.id)
 
                         return (
                           <div
                             key={p.id}
-                            className="p-2.5 rounded-xl border border-neutral-200 bg-white hover:border-neutral-300 transition-colors shadow-2xs space-y-1.5"
+                            className="p-2.5 rounded-xl border border-neutral-200 bg-white hover:border-neutral-300 transition-colors shadow-2xs space-y-2"
                           >
                             <div className="flex items-center gap-2.5">
                               <img
@@ -414,8 +431,13 @@ export function AiVoiceAssistant() {
                                 <h4 className="text-xs font-semibold text-neutral-900 truncate">{p.name}</h4>
                                 <div className="flex items-center gap-1.5 mt-0.5">
                                   <span className="text-xs font-bold text-red-600">
-                                    Rs. {Number(p.price).toLocaleString()}
+                                    Rs. {(Number(p.price) * qty).toLocaleString()}
                                   </span>
+                                  {qty > 1 && (
+                                    <span className="text-[10px] text-neutral-400">
+                                      (Rs. {Number(p.price).toLocaleString()} x {qty})
+                                    </span>
+                                  )}
                                   {p.brand && (
                                     <span className="text-[10px] text-neutral-500 bg-neutral-100 px-1.5 py-0.2 rounded">
                                       {p.brand}
@@ -423,7 +445,42 @@ export function AiVoiceAssistant() {
                                   )}
                                 </div>
                               </div>
+                            </div>
+
+                            <div className="pt-1.5 border-t border-neutral-100 flex items-center justify-between gap-1">
+                              <Link
+                                href={productHref}
+                                target="_blank"
+                                className="text-[11px] text-neutral-500 hover:text-red-600 font-medium inline-flex items-center gap-1 transition-colors"
+                              >
+                                View product
+                                <ExternalLink className="size-3" />
+                              </Link>
+
                               <div className="flex items-center gap-1 shrink-0">
+                                <div className="flex items-center border border-neutral-200 rounded-lg bg-neutral-50 h-7 px-0.5">
+                                  <button
+                                    type="button"
+                                    onClick={() => updateProductQuantity(p.id, -1)}
+                                    disabled={qty <= 1}
+                                    className="size-5.5 flex items-center justify-center text-neutral-600 hover:text-neutral-900 disabled:opacity-30 cursor-pointer"
+                                    aria-label="Decrease quantity"
+                                  >
+                                    <Minus className="size-3" />
+                                  </button>
+                                  <span className="text-xs font-bold w-4 text-center text-neutral-800">
+                                    {qty}
+                                  </span>
+                                  <button
+                                    type="button"
+                                    onClick={() => updateProductQuantity(p.id, 1)}
+                                    className="size-5.5 flex items-center justify-center text-neutral-600 hover:text-neutral-900 cursor-pointer"
+                                    aria-label="Increase quantity"
+                                  >
+                                    <Plus className="size-3" />
+                                  </button>
+                                </div>
+
                                 <Button
                                   size="icon"
                                   variant="outline"
@@ -436,22 +493,11 @@ export function AiVoiceAssistant() {
                                 <Button
                                   size="sm"
                                   onClick={() => handleOpenOrderModal(p)}
-                                  className="h-7 px-2 text-[11px] bg-red-600 hover:bg-red-700 text-white rounded-lg cursor-pointer"
+                                  className="h-7 px-2.5 text-[11px] bg-red-600 hover:bg-red-700 text-white rounded-lg cursor-pointer font-medium"
                                 >
                                   Order
                                 </Button>
                               </div>
-                            </div>
-
-                            <div className="pt-1 border-t border-neutral-100 flex items-center justify-between">
-                              <Link
-                                href={productHref}
-                                target="_blank"
-                                className="text-[11px] text-neutral-500 hover:text-red-600 font-medium inline-flex items-center gap-1 transition-colors"
-                              >
-                                View product
-                                <ExternalLink className="size-3" />
-                              </Link>
                             </div>
                           </div>
                         )
@@ -599,14 +645,48 @@ export function AiVoiceAssistant() {
                       <h4 className="text-xs font-semibold text-neutral-900 truncate">
                         {orderModalProduct.name}
                       </h4>
-                      <p className="text-xs font-bold text-red-600 mt-0.5">
-                        Rs. {Number(orderModalProduct.price).toLocaleString()}
-                      </p>
+                      <div className="flex items-center gap-1.5 mt-0.5">
+                        <span className="text-xs font-bold text-red-600">
+                          Rs. {(Number(orderModalProduct.price) * orderModalQuantity).toLocaleString()}
+                        </span>
+                        {orderModalQuantity > 1 && (
+                          <span className="text-[10px] text-neutral-400">
+                            (Rs. {Number(orderModalProduct.price).toLocaleString()} x {orderModalQuantity})
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center border border-neutral-200 rounded-lg bg-white h-7 px-0.5 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => setOrderModalQuantity((q) => Math.max(1, q - 1))}
+                        disabled={orderModalQuantity <= 1}
+                        className="size-5.5 flex items-center justify-center text-neutral-600 hover:text-neutral-900 disabled:opacity-30 cursor-pointer"
+                        aria-label="Decrease quantity"
+                      >
+                        <Minus className="size-3" />
+                      </button>
+                      <span className="text-xs font-bold w-5 text-center text-neutral-800">
+                        {orderModalQuantity}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setOrderModalQuantity((q) => q + 1)}
+                        className="size-5.5 flex items-center justify-center text-neutral-600 hover:text-neutral-900 cursor-pointer"
+                        aria-label="Increase quantity"
+                      >
+                        <Plus className="size-3" />
+                      </button>
                     </div>
                   </div>
 
                   <div className="pt-2 border-t border-neutral-200/80 flex items-center justify-between text-[11px]">
                     <div className="space-y-0.5 text-neutral-700">
+                      <p>
+                        <span className="text-neutral-500">Quantity:</span>{" "}
+                        <span className="font-semibold">{orderModalQuantity} unit{orderModalQuantity > 1 ? "s" : ""}</span>
+                      </p>
                       <p>
                         <span className="text-neutral-500">Name:</span>{" "}
                         <span className="font-semibold">{customerName}</span>
@@ -665,9 +745,39 @@ export function AiVoiceAssistant() {
                     <h4 className="text-xs font-semibold text-neutral-900 truncate">
                       {orderModalProduct.name}
                     </h4>
-                    <p className="text-xs font-bold text-red-600 mt-0.5">
-                      Rs. {Number(orderModalProduct.price).toLocaleString()}
-                    </p>
+                    <div className="flex items-center gap-1.5 mt-0.5">
+                      <span className="text-xs font-bold text-red-600">
+                        Rs. {(Number(orderModalProduct.price) * orderModalQuantity).toLocaleString()}
+                      </span>
+                      {orderModalQuantity > 1 && (
+                        <span className="text-[10px] text-neutral-400">
+                          (Rs. {Number(orderModalProduct.price).toLocaleString()} x {orderModalQuantity})
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex items-center border border-neutral-200 rounded-lg bg-white h-7 px-0.5 shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => setOrderModalQuantity((q) => Math.max(1, q - 1))}
+                      disabled={orderModalQuantity <= 1}
+                      className="size-5.5 flex items-center justify-center text-neutral-600 hover:text-neutral-900 disabled:opacity-30 cursor-pointer"
+                      aria-label="Decrease quantity"
+                    >
+                      <Minus className="size-3" />
+                    </button>
+                    <span className="text-xs font-bold w-5 text-center text-neutral-800">
+                      {orderModalQuantity}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setOrderModalQuantity((q) => q + 1)}
+                      className="size-5.5 flex items-center justify-center text-neutral-600 hover:text-neutral-900 cursor-pointer"
+                      aria-label="Increase quantity"
+                    >
+                      <Plus className="size-3" />
+                    </button>
                   </div>
                 </div>
 
