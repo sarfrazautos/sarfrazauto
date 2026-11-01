@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { usePathname } from "next/navigation";
 import {
@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Equal, X } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { motion, useInView, AnimatePresence } from "motion/react";
+import { motion, AnimatePresence } from "motion/react";
 import CartBadge from "@/components/cart-badge";
 import LanguageSelector from "@/components/language-selector";
 import NavbarSearch from "@/components/navbar/navbar-search";
@@ -83,8 +83,6 @@ export function Navbar({ navigationData = defaultNavigation, className }: Navbar
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
   const [sticky, setSticky] = useState(false);
-  const headerRef = useRef<HTMLElement>(null);
-  const isInView = useInView(headerRef, { once: true, amount: 0.1 });
   const { data: session } = useSession();
   const isAuthenticated = Boolean(session?.user);
 
@@ -112,8 +110,8 @@ export function Navbar({ navigationData = defaultNavigation, className }: Navbar
       item.isActive !== undefined && navigationData !== defaultNavigation
         ? item.isActive
         : item.href === "/"
-        ? pathname === "/" || pathname === "/home"
-        : pathname.startsWith(item.href),
+          ? pathname === "/" || pathname === "/home"
+          : pathname.startsWith(item.href),
   }));
 
   const handleScroll = () => {
@@ -151,16 +149,12 @@ export function Navbar({ navigationData = defaultNavigation, className }: Navbar
       <TopTicker />
       <div className="sticky top-0 z-50 w-full bg-white transition-all shadow-xs">
         <header
-          ref={headerRef}
           className={cn(
             "w-full bg-white/95 backdrop-blur-md border-b border-neutral-200/80 transition-all duration-300 ease-in-out h-20 flex items-center",
             className
           )}
         >
-          <motion.nav
-            initial={{ opacity: 0, y: -32 }}
-            animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: -32 }}
-            transition={{ duration: 0.7, ease: "easeInOut" }}
+          <nav
             className={cn(
               "relative mx-auto max-w-7xl px-4 xl:px-16 flex items-center justify-between w-full"
             )}
@@ -171,7 +165,7 @@ export function Navbar({ navigationData = defaultNavigation, className }: Navbar
                 alt="Sarfraz Autos Logo"
                 className="h-10 sm:h-12 w-auto object-contain shrink-0 group-hover:scale-105 transition-transform"
               />
-              <span className="text-xl sm:text-2xl font-bold tracking-tight uppercase text-neutral-950 group-hover:text-red-600 transition-colors">
+              <span className="text-lg sm:text-2xl font-bold tracking-tight uppercase text-neutral-950 group-hover:text-red-600 transition-colors md:leading-none leading-5">
                 Sarfraz Autos
               </span>
             </Link>
@@ -219,7 +213,7 @@ export function Navbar({ navigationData = defaultNavigation, className }: Navbar
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
-          </motion.nav>
+          </nav>
         </header>
         <SecondaryNavbar />
       </div>
