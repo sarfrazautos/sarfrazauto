@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import { getProducts } from "@/lib/api/products";
 import { getBrandLogos } from "@/lib/brand-logos";
 import { useCartStore } from "@/lib/store/cart-store";
+import { useActiveOffer } from "@/lib/hooks/use-active-offer";
 import { Button } from "@/components/ui/button";
 import {
   Pagination,
@@ -57,6 +58,9 @@ export function RetailCatalog({
   className?: string;
 }) {
   const [addedItems, setAddedItems] = useState<Record<string, boolean>>({});
+  const { offer, isApplicable } = useActiveOffer();
+  const isOfferActive = isApplicable("retail");
+  const discountPercent = isOfferActive && offer ? offer.discountPercent : 0;
 
   const brandQuery =
     !activeBrand || activeBrand === "All Brands" || activeBrand === "All"
@@ -185,17 +189,26 @@ export function RetailCatalog({
               const productHref = product.slug ? `/product-overview/${product.slug}` : `/product-overview?id=${product.id}`;
               const brandLogos = getBrandLogos(product.brand, product.name);
 
+              const basePrice = Number(product.price || 0);
+              const hasOffer = isOfferActive && discountPercent > 0 && basePrice > 0;
+              const finalPrice = hasOffer ? Math.round(basePrice * (1 - discountPercent / 100)) : basePrice;
+              const crossedPrice = hasOffer ? basePrice : product.originalPrice ? Number(product.originalPrice) : null;
+
               return (
                 <div key={product.id} className="group flex flex-col border rounded-2xl">
                   <Link
                     href={productHref}
                     className="relative aspect-square w-full rounded-2xl bg-[#fff] overflow-hidden flex items-center justify-center transition-all duration-300 group-hover:bg-[#ebebee]"
                   >
-                    {product.badge && (
+                    {hasOffer ? (
+                      <span className="absolute top-3.5 left-3.5 text-xs font-bold px-2.5 py-0.5 rounded-full z-10 bg-red-600 text-white shadow-xs">
+                        {discountPercent}% OFF
+                      </span>
+                    ) : product.badge ? (
                       <span className="absolute top-3.5 left-3.5 text-xs font-semibold px-2.5 py-0.5 rounded-full z-10 bg-red-100 text-red-600">
                         {product.badge}
                       </span>
-                    )}
+                    ) : null}
                     {brandLogos.length > 0 && (
                       <div className="absolute top-2.5 right-2.5 z-10 flex items-center gap-1.5">
                         {brandLogos.map((item, idx) => (
@@ -246,11 +259,11 @@ export function RetailCatalog({
                         </h3>
                         <div className="flex items-center gap-2 mt-1">
                           <p className="font-semibold text-neutral-900 text-sm md:text-base">
-                            Rs. {Number(product.price || 0).toLocaleString()}
+                            Rs. {finalPrice.toLocaleString()}
                           </p>
-                          {product.originalPrice && (
+                          {crossedPrice && crossedPrice > finalPrice && (
                             <span className="text-xs md:text-sm text-red-600 line-through font-normal">
-                              Rs. {Number(product.originalPrice).toLocaleString()}
+                              Rs. {crossedPrice.toLocaleString()}
                             </span>
                           )}
                         </div>

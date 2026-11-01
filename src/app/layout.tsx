@@ -7,6 +7,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { FloatingWhatsAppButton } from "@/components/whatsapp-floating-button";
 import { AiVoiceAssistant } from "@/components/ai-voice-assistant";
 import { GoogleTranslateProvider } from "@/components/google-translate-provider";
+import { SpecialOfferModal } from "@/components/special-offer-modal";
 
 const dmSans = DM_Sans({
   subsets: ["latin"],
@@ -47,6 +48,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         </QueryProvider>
         <FloatingWhatsAppButton />
         <AiVoiceAssistant />
+        <SpecialOfferModal />
         <GoogleTranslateProvider />
         <Toaster position="bottom-right" richColors />
       </body>

@@ -18,6 +18,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useCart } from "@/lib/store/cart-store";
 import { useCheckoutInfo } from "@/lib/store/checkout-store";
+import { useActiveOffer } from "@/lib/hooks/use-active-offer";
 import { createOrder } from "@/lib/api/orders";
 import { createPayment } from "@/lib/api/payments";
 import { uploadProductImage } from "@/lib/api/products";
@@ -36,11 +37,16 @@ export function PaymentSection({ className = "" }: { className?: string }) {
 
   const { items, retailSubtotal, wholesaleSubtotal, clearCart } = useCart();
   const { info } = useCheckoutInfo();
+  const { offer, isApplicable } = useActiveOffer();
 
   const subtotal = retailSubtotal + wholesaleSubtotal;
   const isPickup = info.deliveryMethod === "pickup";
   const shipping = isPickup || subtotal >= 5000 || subtotal === 0 ? 0 : 250;
-  const total = subtotal + shipping;
+
+  const discountRetail = isApplicable("retail") && offer ? Math.round((retailSubtotal * offer.discountPercent) / 100) : 0;
+  const discountWholesale = isApplicable("wholesale") && offer ? Math.round((wholesaleSubtotal * offer.discountPercent) / 100) : 0;
+  const offerDiscount = discountRetail + discountWholesale;
+  const total = Math.max(0, subtotal - offerDiscount + shipping);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -95,6 +101,7 @@ export function PaymentSection({ className = "" }: { className?: string }) {
         info.address ? `Address: ${info.address}` : "",
         info.apartment ? `Apartment: ${info.apartment}` : "",
         info.notes ? `Note: ${info.notes}` : "",
+        offerDiscount > 0 && offer ? `Offer: ${offer.title} (${offer.discountPercent}% OFF, -Rs. ${offerDiscount})` : "",
         `Method: ${finalMethod}`,
       ].filter(Boolean);
 
@@ -366,6 +373,13 @@ export function PaymentSection({ className = "" }: { className?: string }) {
                       {shipping === 0 ? "Free" : `Rs. ${shipping}`}
                     </span>
                   </div>
+
+                  {offerDiscount > 0 && offer && (
+                    <div className="flex items-center justify-between text-emerald-600 text-xs sm:text-sm">
+                      <span>Special Deal ({offer.discountPercent}% OFF)</span>
+                      <span className="font-semibold">-Rs. {offerDiscount.toLocaleString()}</span>
+                    </div>
+                  )}
 
                   <Separator />
 

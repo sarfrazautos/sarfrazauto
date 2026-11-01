@@ -57,9 +57,14 @@ export function AdminBulkPricingSection() {
   const [brand, setBrand] = useState("All Brands")
   const [bike, setBike] = useState("All Bikes")
   const [productType, setProductType] = useState("all")
-  const [operation, setOperation] = useState("increase")
-  const [adjustmentType, setAdjustmentType] = useState("percentage")
-  const [adjustmentValue, setAdjustmentValue] = useState("10")
+  const [modifySellingPrice, setModifySellingPrice] = useState(true)
+  const [sellingOperation, setSellingOperation] = useState("increase")
+  const [sellingAdjustmentType, setSellingAdjustmentType] = useState("percentage")
+  const [sellingAdjustmentValue, setSellingAdjustmentValue] = useState("10")
+  const [modifyCutPrice, setModifyCutPrice] = useState(true)
+  const [cutOperation, setCutOperation] = useState("increase")
+  const [cutAdjustmentType, setCutAdjustmentType] = useState("percentage")
+  const [cutAdjustmentValue, setCutAdjustmentValue] = useState("10")
 
   const [isLoadingPreview, setIsLoadingPreview] = useState(false)
   const [isApplying, setIsApplying] = useState(false)
@@ -69,6 +74,11 @@ export function AdminBulkPricingSection() {
   const [selectedIds, setSelectedIds] = useState<number[]>([])
 
   const fetchPreview = async () => {
+    if (!modifySellingPrice && !modifyCutPrice) {
+      toast.error("Please enable at least one adjustment (Selling Price or Cut Price)")
+      return
+    }
+
     setIsLoadingPreview(true)
     try {
       const res = await fetch("/api/admin/bulk-pricing", {
@@ -81,9 +91,14 @@ export function AdminBulkPricingSection() {
           brand: brand !== "All Brands" ? brand : null,
           bike: bike !== "All Bikes" ? bike : null,
           type: productType !== "all" ? productType : null,
-          operation,
-          adjustmentType,
-          adjustmentValue: Number(adjustmentValue) || 0,
+          modifySellingPrice,
+          sellingOperation,
+          sellingAdjustmentType,
+          sellingAdjustmentValue: Number(sellingAdjustmentValue) || 0,
+          modifyCutPrice,
+          cutOperation,
+          cutAdjustmentType,
+          cutAdjustmentValue: Number(cutAdjustmentValue) || 0,
           action: "preview",
         }),
       })
@@ -116,6 +131,11 @@ export function AdminBulkPricingSection() {
       return
     }
 
+    if (!modifySellingPrice && !modifyCutPrice) {
+      toast.error("Please enable at least one adjustment (Selling Price or Cut Price)")
+      return
+    }
+
     setIsApplying(true)
     try {
       const res = await fetch("/api/admin/bulk-pricing", {
@@ -128,9 +148,14 @@ export function AdminBulkPricingSection() {
           brand: brand !== "All Brands" ? brand : null,
           bike: bike !== "All Bikes" ? bike : null,
           type: productType !== "all" ? productType : null,
-          operation,
-          adjustmentType,
-          adjustmentValue: Number(adjustmentValue) || 0,
+          modifySellingPrice,
+          sellingOperation,
+          sellingAdjustmentType,
+          sellingAdjustmentValue: Number(sellingAdjustmentValue) || 0,
+          modifyCutPrice,
+          cutOperation,
+          cutAdjustmentType,
+          cutAdjustmentValue: Number(cutAdjustmentValue) || 0,
           action: "apply",
           selectedIds,
         }),
@@ -171,9 +196,14 @@ export function AdminBulkPricingSection() {
     setBrand("All Brands")
     setBike("All Bikes")
     setProductType("all")
-    setOperation("increase")
-    setAdjustmentType("percentage")
-    setAdjustmentValue("10")
+    setModifySellingPrice(true)
+    setSellingOperation("increase")
+    setSellingAdjustmentType("percentage")
+    setSellingAdjustmentValue("10")
+    setModifyCutPrice(true)
+    setCutOperation("increase")
+    setCutAdjustmentType("percentage")
+    setCutAdjustmentValue("10")
     setPreviewProducts([])
     setSummary(null)
     setSelectedIds([])
@@ -181,7 +211,7 @@ export function AdminBulkPricingSection() {
   }
 
   return (
-    <div className="p-4 lg:p-8 max-w-7xl mx-auto space-y-6">
+    <div className="p-4 sm:p-6 lg:p-8 w-full space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-2xl font-bold tracking-tight text-neutral-900">
@@ -334,92 +364,233 @@ export function AdminBulkPricingSection() {
         <CardHeader className="pb-3 border-b border-neutral-100">
           <div className="flex items-center gap-2 text-neutral-900 font-semibold text-sm">
             <Percent className="size-4 text-red-600" />
-            <span>2. Set Price Adjustment</span>
+            <span>2. Set Price Adjustments</span>
           </div>
         </CardHeader>
 
-        <CardContent className="pt-4">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
-            <div>
-              <label className="text-xs font-medium text-neutral-700 block mb-1.5">
-                Adjustment Action
+        <CardContent className="pt-4 space-y-4">
+          <div className="p-4 rounded-xl border border-neutral-200 bg-neutral-50/50 space-y-3">
+            <div className="flex items-center justify-between">
+              <label className="flex items-center gap-2.5 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={modifySellingPrice}
+                  onChange={(e) => setModifySellingPrice(e.target.checked)}
+                  className="size-4 rounded border-neutral-300 text-red-600 cursor-pointer"
+                />
+                <span className="text-xs font-bold text-neutral-900">
+                  Adjust Selling Price (Normal Price)
+                </span>
               </label>
-              <div className="grid grid-cols-2 gap-2">
-                <Button
-                  type="button"
-                  variant={operation === "increase" ? "default" : "outline"}
-                  onClick={() => setOperation("increase")}
-                  className={`h-9 text-xs font-semibold cursor-pointer gap-1.5 ${
-                    operation === "increase"
-                      ? "bg-red-600 hover:bg-red-700 text-white"
-                      : "text-neutral-700 hover:bg-neutral-50"
-                  }`}
-                >
-                  <TrendingUp className="size-3.5" />
-                  <span>Increase (+)</span>
-                </Button>
+              <Badge
+                variant="outline"
+                className={
+                  modifySellingPrice
+                    ? "bg-red-50 text-red-700 border-red-200 text-[10px]"
+                    : "text-neutral-400 text-[10px]"
+                }
+              >
+                {modifySellingPrice ? "Enabled" : "Skipped"}
+              </Badge>
+            </div>
 
-                <Button
-                  type="button"
-                  variant={operation === "decrease" ? "default" : "outline"}
-                  onClick={() => setOperation("decrease")}
-                  className={`h-9 text-xs font-semibold cursor-pointer gap-1.5 ${
-                    operation === "decrease"
-                      ? "bg-neutral-900 hover:bg-neutral-800 text-white"
-                      : "text-neutral-700 hover:bg-neutral-50"
-                  }`}
-                >
-                  <TrendingDown className="size-3.5" />
-                  <span>Decrease (-)</span>
-                </Button>
+            <div
+              className={`grid grid-cols-1 sm:grid-cols-3 gap-3 items-end transition-opacity ${
+                !modifySellingPrice ? "opacity-40 pointer-events-none" : ""
+              }`}
+            >
+              <div>
+                <label className="text-xs font-medium text-neutral-700 block mb-1.5">
+                  Action
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  <Button
+                    type="button"
+                    variant={sellingOperation === "increase" ? "default" : "outline"}
+                    onClick={() => setSellingOperation("increase")}
+                    className={`h-9 text-xs font-semibold cursor-pointer gap-1.5 ${
+                      sellingOperation === "increase"
+                        ? "bg-red-600 hover:bg-red-700 text-white"
+                        : "text-neutral-700 hover:bg-neutral-50"
+                    }`}
+                  >
+                    <TrendingUp className="size-3.5" />
+                    <span>Increase (+)</span>
+                  </Button>
+
+                  <Button
+                    type="button"
+                    variant={sellingOperation === "decrease" ? "default" : "outline"}
+                    onClick={() => setSellingOperation("decrease")}
+                    className={`h-9 text-xs font-semibold cursor-pointer gap-1.5 ${
+                      sellingOperation === "decrease"
+                        ? "bg-neutral-900 hover:bg-neutral-800 text-white"
+                        : "text-neutral-700 hover:bg-neutral-50"
+                    }`}
+                  >
+                    <TrendingDown className="size-3.5" />
+                    <span>Decrease (-)</span>
+                  </Button>
+                </div>
               </div>
-            </div>
 
-            <div>
-              <label className="text-xs font-medium text-neutral-700 block mb-1.5">
-                Adjustment Type
-              </label>
-              <Select value={adjustmentType} onValueChange={(val) => setAdjustmentType(val || "percentage")}>
-                <SelectTrigger className="h-9 text-sm w-full">
-                  <SelectValue placeholder="Adjustment Type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="percentage">Percentage (%)</SelectItem>
-                  <SelectItem value="fixed">Fixed Amount (Rs.)</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+              <div>
+                <label className="text-xs font-medium text-neutral-700 block mb-1.5">
+                  Adjustment Type
+                </label>
+                <Select
+                  value={sellingAdjustmentType}
+                  onValueChange={(val) => setSellingAdjustmentType(val || "percentage")}
+                >
+                  <SelectTrigger className="h-9 text-sm w-full bg-white">
+                    <SelectValue placeholder="Adjustment Type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="percentage">Percentage (%)</SelectItem>
+                    <SelectItem value="fixed">Fixed Amount (Rs.)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
-            <div>
-              <label className="text-xs font-medium text-neutral-700 block mb-1.5">
-                {adjustmentType === "percentage" ? "Percentage Value (%)" : "Fixed Amount (Rs.)"}
-              </label>
-              <div className="flex gap-2">
-                <div className="relative flex-1">
+              <div>
+                <label className="text-xs font-medium text-neutral-700 block mb-1.5">
+                  {sellingAdjustmentType === "percentage"
+                    ? "Percentage Value (%)"
+                    : "Fixed Amount (Rs.)"}
+                </label>
+                <div className="relative">
                   <Input
                     type="number"
                     min="1"
-                    value={adjustmentValue}
-                    onChange={(e) => setAdjustmentValue(e.target.value)}
+                    value={sellingAdjustmentValue}
+                    onChange={(e) => setSellingAdjustmentValue(e.target.value)}
                     placeholder="e.g. 10"
-                    className="h-9 text-sm pr-8"
+                    className="h-9 text-sm pr-8 bg-white"
                   />
                   <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-neutral-400 font-medium">
-                    {adjustmentType === "percentage" ? "%" : "Rs."}
+                    {sellingAdjustmentType === "percentage" ? "%" : "Rs."}
                   </span>
                 </div>
-
-                <Button
-                  type="button"
-                  onClick={fetchPreview}
-                  disabled={isLoadingPreview}
-                  className="h-9 px-4 bg-neutral-900 hover:bg-neutral-800 text-white text-xs font-semibold rounded-lg cursor-pointer shrink-0 gap-1.5"
-                >
-                  <Search className="size-3.5" />
-                  <span>{isLoadingPreview ? "Loading..." : "Preview"}</span>
-                </Button>
               </div>
             </div>
+          </div>
+
+          <div className="p-4 rounded-xl border border-neutral-200 bg-neutral-50/50 space-y-3">
+            <div className="flex items-center justify-between">
+              <label className="flex items-center gap-2.5 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={modifyCutPrice}
+                  onChange={(e) => setModifyCutPrice(e.target.checked)}
+                  className="size-4 rounded border-neutral-300 text-red-600 cursor-pointer"
+                />
+                <span className="text-xs font-bold text-neutral-900">
+                  Adjust Cut Price (Original Strikethrough Price)
+                </span>
+              </label>
+              <Badge
+                variant="outline"
+                className={
+                  modifyCutPrice
+                    ? "bg-red-50 text-red-700 border-red-200 text-[10px]"
+                    : "text-neutral-400 text-[10px]"
+                }
+              >
+                {modifyCutPrice ? "Enabled" : "Skipped"}
+              </Badge>
+            </div>
+
+            <div
+              className={`grid grid-cols-1 sm:grid-cols-3 gap-3 items-end transition-opacity ${
+                !modifyCutPrice ? "opacity-40 pointer-events-none" : ""
+              }`}
+            >
+              <div>
+                <label className="text-xs font-medium text-neutral-700 block mb-1.5">
+                  Action
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  <Button
+                    type="button"
+                    variant={cutOperation === "increase" ? "default" : "outline"}
+                    onClick={() => setCutOperation("increase")}
+                    className={`h-9 text-xs font-semibold cursor-pointer gap-1.5 ${
+                      cutOperation === "increase"
+                        ? "bg-red-600 hover:bg-red-700 text-white"
+                        : "text-neutral-700 hover:bg-neutral-50"
+                    }`}
+                  >
+                    <TrendingUp className="size-3.5" />
+                    <span>Increase (+)</span>
+                  </Button>
+
+                  <Button
+                    type="button"
+                    variant={cutOperation === "decrease" ? "default" : "outline"}
+                    onClick={() => setCutOperation("decrease")}
+                    className={`h-9 text-xs font-semibold cursor-pointer gap-1.5 ${
+                      cutOperation === "decrease"
+                        ? "bg-neutral-900 hover:bg-neutral-800 text-white"
+                        : "text-neutral-700 hover:bg-neutral-50"
+                    }`}
+                  >
+                    <TrendingDown className="size-3.5" />
+                    <span>Decrease (-)</span>
+                  </Button>
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs font-medium text-neutral-700 block mb-1.5">
+                  Adjustment Type
+                </label>
+                <Select
+                  value={cutAdjustmentType}
+                  onValueChange={(val) => setCutAdjustmentType(val || "percentage")}
+                >
+                  <SelectTrigger className="h-9 text-sm w-full bg-white">
+                    <SelectValue placeholder="Adjustment Type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="percentage">Percentage (%)</SelectItem>
+                    <SelectItem value="fixed">Fixed Amount (Rs.)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <label className="text-xs font-medium text-neutral-700 block mb-1.5">
+                  {cutAdjustmentType === "percentage"
+                    ? "Percentage Value (%)"
+                    : "Fixed Amount (Rs.)"}
+                </label>
+                <div className="relative">
+                  <Input
+                    type="number"
+                    min="1"
+                    value={cutAdjustmentValue}
+                    onChange={(e) => setCutAdjustmentValue(e.target.value)}
+                    placeholder="e.g. 10"
+                    className="h-9 text-sm pr-8 bg-white"
+                  />
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-neutral-400 font-medium">
+                    {cutAdjustmentType === "percentage" ? "%" : "Rs."}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-end pt-3 border-t border-neutral-100">
+            <Button
+              type="button"
+              onClick={fetchPreview}
+              disabled={isLoadingPreview}
+              className="h-9 px-5 bg-neutral-900 hover:bg-neutral-800 text-white text-xs font-semibold rounded-lg cursor-pointer gap-2"
+            >
+              <Search className="size-3.5" />
+              <span>{isLoadingPreview ? "Loading..." : "Preview Adjustments"}</span>
+            </Button>
           </div>
         </CardContent>
       </Card>
@@ -437,33 +608,44 @@ export function AdminBulkPricingSection() {
 
           <Card className="p-3.5 bg-neutral-50 border-neutral-200">
             <span className="text-[11px] font-medium text-neutral-500 uppercase tracking-wider block">
-              Avg Old Price
+              Avg Selling Price
+            </span>
+            <div className="text-sm sm:text-base font-bold text-neutral-900 mt-1 flex items-center gap-1.5 flex-wrap">
+              <span>Rs. {summary.avgOldSelling?.toLocaleString()}</span>
+              {modifySellingPrice && (
+                <>
+                  <ArrowRight className="size-3 text-neutral-400" />
+                  <span className="text-red-600">Rs. {summary.avgNewSelling?.toLocaleString()}</span>
+                </>
+              )}
+            </div>
+          </Card>
+
+          <Card className="p-3.5 bg-neutral-50 border-neutral-200">
+            <span className="text-[11px] font-medium text-neutral-500 uppercase tracking-wider block">
+              Avg Cut Price
+            </span>
+            <div className="text-sm sm:text-base font-bold text-neutral-900 mt-1 flex items-center gap-1.5 flex-wrap">
+              <span className="line-through text-neutral-400 font-medium">
+                Rs. {summary.avgOldCut?.toLocaleString()}
+              </span>
+              {modifyCutPrice && (
+                <>
+                  <ArrowRight className="size-3 text-neutral-400" />
+                  <span className="line-through text-neutral-800">
+                    Rs. {summary.avgNewCut?.toLocaleString()}
+                  </span>
+                </>
+              )}
+            </div>
+          </Card>
+
+          <Card className="p-3.5 bg-neutral-50 border-neutral-200">
+            <span className="text-[11px] font-medium text-neutral-500 uppercase tracking-wider block">
+              Selected Products
             </span>
             <span className="text-xl font-bold text-neutral-900 mt-1 block">
-              Rs. {summary.avgPrice?.toLocaleString()}
-            </span>
-          </Card>
-
-          <Card className="p-3.5 bg-neutral-50 border-neutral-200">
-            <span className="text-[11px] font-medium text-neutral-500 uppercase tracking-wider block">
-              Avg Projected Price
-            </span>
-            <span className="text-xl font-bold text-red-600 mt-1 block">
-              Rs. {summary.avgNewPrice?.toLocaleString()}
-            </span>
-          </Card>
-
-          <Card className="p-3.5 bg-neutral-50 border-neutral-200">
-            <span className="text-[11px] font-medium text-neutral-500 uppercase tracking-wider block">
-              Avg Change
-            </span>
-            <span
-              className={`text-xl font-bold mt-1 block ${
-                summary.totalDifference >= 0 ? "text-emerald-600" : "text-amber-600"
-              }`}
-            >
-              {summary.totalDifference >= 0 ? "+" : ""}
-              Rs. {Math.round(summary.totalDifference / (summary.totalCount || 1)).toLocaleString()}
+              {selectedIds.length}
             </span>
           </Card>
         </div>
@@ -509,13 +691,25 @@ export function AdminBulkPricingSection() {
                   <AlertDialogHeader>
                     <AlertDialogTitle>Confirm Bulk Price Update</AlertDialogTitle>
                     <AlertDialogDescription>
-                      This will update the live catalog prices for <strong>{selectedIds.length}</strong> products by{" "}
-                      <strong>
-                        {operation === "increase" ? "+" : "-"}
-                        {adjustmentValue}
-                        {adjustmentType === "percentage" ? "%" : " Rs."}
-                      </strong>
-                      . The previous prices will be preserved in the original price field.
+                      This will update prices for {selectedIds.length} products:
+                      {modifySellingPrice && (
+                        <span>
+                          {" "}
+                          Selling Price ({sellingOperation === "increase" ? "+" : "-"}
+                          {sellingAdjustmentValue}
+                          {sellingAdjustmentType === "percentage" ? "%" : " Rs."})
+                        </span>
+                      )}
+                      {modifySellingPrice && modifyCutPrice && " and"}
+                      {modifyCutPrice && (
+                        <span>
+                          {" "}
+                          Cut Price ({cutOperation === "increase" ? "+" : "-"}
+                          {cutAdjustmentValue}
+                          {cutAdjustmentType === "percentage" ? "%" : " Rs."})
+                        </span>
+                      )}
+                      .
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
@@ -553,9 +747,10 @@ export function AdminBulkPricingSection() {
                       <TableHead className="text-xs font-semibold text-neutral-700">Product</TableHead>
                       <TableHead className="text-xs font-semibold text-neutral-700">Category &amp; Brand</TableHead>
                       <TableHead className="text-xs font-semibold text-neutral-700">Model / Type</TableHead>
-                      <TableHead className="text-xs font-semibold text-neutral-700 text-right">Current Price</TableHead>
-                      <TableHead className="text-xs font-semibold text-neutral-700 text-center">Change</TableHead>
+                      <TableHead className="text-xs font-semibold text-neutral-700 text-right">Selling Price</TableHead>
+                      <TableHead className="text-xs font-semibold text-neutral-700 text-right">Cut Price</TableHead>
                       <TableHead className="text-xs font-semibold text-neutral-700 text-right">New Price</TableHead>
+                      <TableHead className="text-xs font-semibold text-neutral-700 text-right">New Cut Price</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -615,25 +810,54 @@ export function AdminBulkPricingSection() {
                             </div>
                           </TableCell>
 
-                          <TableCell className="text-right text-xs font-medium text-neutral-600">
+                          <TableCell className="text-right text-xs font-medium text-neutral-700">
                             Rs. {p.currentPrice.toLocaleString()}
                           </TableCell>
 
-                          <TableCell className="text-center">
-                            <Badge
-                              className={`text-[10px] font-semibold ${
-                                p.difference >= 0
-                                  ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                                  : "bg-amber-50 text-amber-700 border-amber-200"
-                              }`}
-                              variant="outline"
-                            >
-                              {p.percentChange}
-                            </Badge>
+                          <TableCell className="text-right text-xs">
+                            {p.originalPrice ? (
+                              <span
+                                className={`line-through font-medium ${
+                                  Number(p.originalPrice) < Number(p.currentPrice)
+                                    ? "text-amber-600 font-semibold"
+                                    : "text-neutral-400"
+                                }`}
+                              >
+                                Rs. {Number(p.originalPrice).toLocaleString()}
+                              </span>
+                            ) : (
+                              <span className="text-neutral-400 text-xs">None</span>
+                            )}
                           </TableCell>
 
-                          <TableCell className="text-right text-xs font-bold text-neutral-900">
-                            <span className="text-red-600">Rs. {p.newPrice.toLocaleString()}</span>
+                          <TableCell className="text-right text-xs font-bold">
+                            {modifySellingPrice ? (
+                              <div>
+                                <span className="text-red-600 block">
+                                  Rs. {p.newPrice.toLocaleString()}
+                                </span>
+                                <span className="text-[10px] text-neutral-400 font-normal block">
+                                  {p.sellingPercentChange}
+                                </span>
+                              </div>
+                            ) : (
+                              <span className="text-neutral-400 font-normal text-xs">Unchanged</span>
+                            )}
+                          </TableCell>
+
+                          <TableCell className="text-right text-xs font-bold">
+                            {modifyCutPrice ? (
+                              <div>
+                                <span className="line-through text-neutral-800 block">
+                                  Rs. {Number(p.newOriginalPrice).toLocaleString()}
+                                </span>
+                                <span className="text-[10px] text-neutral-400 font-normal block">
+                                  {p.cutPercentChange}
+                                </span>
+                              </div>
+                            ) : (
+                              <span className="text-neutral-400 font-normal text-xs">Unchanged</span>
+                            )}
                           </TableCell>
                         </TableRow>
                       )

@@ -28,9 +28,14 @@ export async function POST(req: Request) {
       brand,
       bike,
       type,
-      operation = "increase",
-      adjustmentType = "percentage",
-      adjustmentValue = 10,
+      modifySellingPrice = true,
+      sellingOperation = body.operation || "increase",
+      sellingAdjustmentType = body.adjustmentType || "percentage",
+      sellingAdjustmentValue = body.adjustmentValue ?? 10,
+      modifyCutPrice = false,
+      cutOperation = "increase",
+      cutAdjustmentType = "percentage",
+      cutAdjustmentValue = 10,
       action = "preview",
       selectedIds,
     } = body
@@ -103,9 +108,28 @@ export async function POST(req: Request) {
 
     const previewList = filteredProducts.map((p) => {
       const currentPrice = Number(p.price) || 0
-      const newPrice = calculateNewPrice(currentPrice, operation, adjustmentType, adjustmentValue)
-      const difference = newPrice - currentPrice
-      const percentChange = currentPrice > 0 ? ((difference / currentPrice) * 100).toFixed(1) : "0"
+      const originalPrice = p.originalPrice !== null && p.originalPrice !== undefined ? Number(p.originalPrice) : null
+
+      let newPrice = currentPrice
+      let sellingDifference = 0
+      let sellingPercentChange = "0"
+
+      if (modifySellingPrice) {
+        newPrice = calculateNewPrice(currentPrice, sellingOperation, sellingAdjustmentType, Number(sellingAdjustmentValue) || 0)
+        sellingDifference = newPrice - currentPrice
+        sellingPercentChange = currentPrice > 0 ? ((sellingDifference / currentPrice) * 100).toFixed(1) : "0"
+      }
+
+      let newOriginalPrice = originalPrice
+      let cutDifference = 0
+      let cutPercentChange = "0"
+
+      if (modifyCutPrice) {
+        const baseCutPrice = originalPrice && originalPrice > 0 ? originalPrice : currentPrice
+        newOriginalPrice = calculateNewPrice(baseCutPrice, cutOperation, cutAdjustmentType, Number(cutAdjustmentValue) || 0)
+        cutDifference = newOriginalPrice - baseCutPrice
+        cutPercentChange = baseCutPrice > 0 ? ((cutDifference / baseCutPrice) * 100).toFixed(1) : "0"
+      }
 
       return {
         id: p.id,
@@ -117,9 +141,15 @@ export async function POST(req: Request) {
         images: p.images,
         mainImageIndex: p.mainImageIndex,
         currentPrice,
+        originalPrice,
         newPrice,
-        difference,
-        percentChange: `${difference >= 0 ? "+" : ""}${percentChange}%`,
+        newOriginalPrice,
+        modifySellingPrice,
+        modifyCutPrice,
+        sellingDifference,
+        sellingPercentChange: `${sellingDifference >= 0 ? "+" : ""}${sellingPercentChange}%`,
+        cutDifference,
+        cutPercentChange: `${cutDifference >= 0 ? "+" : ""}${cutPercentChange}%`,
       }
     })
 
@@ -130,16 +160,21 @@ export async function POST(req: Request) {
       for (let i = 0; i < previewList.length; i += batchSize) {
         const chunk = previewList.slice(i, i + batchSize)
         await Promise.all(
-          chunk.map((item) =>
-            db
+          chunk.map((item) => {
+            const updatePayload: { price?: number; originalPrice?: number | null; updatedAt: Date } = {
+              updatedAt: new Date(),
+            }
+            if (modifySellingPrice) {
+              updatePayload.price = item.newPrice
+            }
+            if (modifyCutPrice) {
+              updatePayload.originalPrice = item.newOriginalPrice
+            }
+            return db
               .update(products)
-              .set({
-                originalPrice: item.currentPrice,
-                price: item.newPrice,
-                updatedAt: new Date(),
-              })
+              .set(updatePayload)
               .where(eq(products.id, item.id))
-          )
+          })
         )
         updatedCount += chunk.length
       }
@@ -151,8 +186,10 @@ export async function POST(req: Request) {
       })
     }
 
-    const totalOld = previewList.reduce((acc, curr) => acc + curr.currentPrice, 0)
-    const totalNew = previewList.reduce((acc, curr) => acc + curr.newPrice, 0)
+    const totalOldSelling = previewList.reduce((acc, curr) => acc + curr.currentPrice, 0)
+    const totalNewSelling = previewList.reduce((acc, curr) => acc + curr.newPrice, 0)
+    const totalOldCut = previewList.reduce((acc, curr) => acc + (curr.originalPrice || curr.currentPrice), 0)
+    const totalNewCut = previewList.reduce((acc, curr) => acc + (curr.newOriginalPrice || curr.currentPrice), 0)
 
     return NextResponse.json({
       success: true,
@@ -160,11 +197,14 @@ export async function POST(req: Request) {
       products: previewList,
       summary: {
         totalCount: previewList.length,
-        totalOldPrice: totalOld,
-        totalNewPrice: totalNew,
-        totalDifference: totalNew - totalOld,
-        avgPrice: previewList.length ? Math.round(totalOld / previewList.length) : 0,
-        avgNewPrice: previewList.length ? Math.round(totalNew / previewList.length) : 0,
+        totalOldSelling,
+        totalNewSelling,
+        totalOldCut,
+        totalNewCut,
+        avgOldSelling: previewList.length ? Math.round(totalOldSelling / previewList.length) : 0,
+        avgNewSelling: previewList.length ? Math.round(totalNewSelling / previewList.length) : 0,
+        avgOldCut: previewList.length ? Math.round(totalOldCut / previewList.length) : 0,
+        avgNewCut: previewList.length ? Math.round(totalNewCut / previewList.length) : 0,
       },
     })
   } catch (error: any) {

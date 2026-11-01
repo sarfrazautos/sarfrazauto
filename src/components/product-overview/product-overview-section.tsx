@@ -24,6 +24,7 @@ import { getColorHex } from "@/lib/product-colors";
 import { getProductById, getProducts } from "@/lib/api/products";
 import { getBrandLogos } from "@/lib/brand-logos";
 import { useCartStore } from "@/lib/store/cart-store";
+import { useActiveOffer } from "@/lib/hooks/use-active-offer";
 import RelatedProducts from "./related-products";
 
 function ProductOverviewContent({
@@ -57,6 +58,14 @@ function ProductOverviewContent({
   });
 
   const isWholesale = (product?.type || defaultType).toLowerCase() === "wholesale";
+
+  const { offer, isApplicable } = useActiveOffer();
+  const isOfferApplicable = product ? isApplicable(isWholesale ? "wholesale" : "retail") : false;
+  const offerDiscountPercent = isOfferApplicable && offer ? offer.discountPercent : 0;
+  const offerPrice =
+    offerDiscountPercent > 0 && product
+      ? Math.round(Number(product.price) * (1 - offerDiscountPercent / 100))
+      : null;
 
   const handleAddToCart = () => {
     if (!product) return;
@@ -334,21 +343,55 @@ function ProductOverviewContent({
                 </div>
               </div>
 
-              <div className="flex items-baseline gap-3 pt-5 border-t border-neutral-100">
+              <div className="flex flex-wrap items-baseline gap-3 pt-5 border-t border-neutral-100">
                 <span className="text-3xl sm:text-4xl font-semibold tracking-tight text-neutral-950">
-                  Rs. {Number(product.price || 0).toLocaleString()}
+                  Rs. {(offerPrice ?? Number(product.price || 0)).toLocaleString()}
                 </span>
-                {product.originalPrice && (
-                  <span className="text-lg text-neutral-400 line-through font-normal">
-                    Rs. {Number(product.originalPrice).toLocaleString()}
-                  </span>
-                )}
-                {hasDiscount && (
-                  <span className="text-xs font-semibold text-red-600 bg-red-50 border border-red-100 px-2.5 py-1 rounded-full">
-                    {discountPercent}% Off
-                  </span>
+                {offerPrice ? (
+                  <>
+                    <span className="text-lg text-neutral-400 line-through font-normal">
+                      Rs. {Number(product.price).toLocaleString()}
+                    </span>
+                    <span className="text-xs font-semibold text-red-600 bg-red-50 border border-red-100 px-2.5 py-1 rounded-full">
+                      {offerDiscountPercent}% Special Deal
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    {product.originalPrice && (
+                      <span className="text-lg text-neutral-400 line-through font-normal">
+                        Rs. {Number(product.originalPrice).toLocaleString()}
+                      </span>
+                    )}
+                    {hasDiscount && (
+                      <span className="text-xs font-semibold text-red-600 bg-red-50 border border-red-100 px-2.5 py-1 rounded-full">
+                        {discountPercent}% Off
+                      </span>
+                    )}
+                  </>
                 )}
               </div>
+
+              {isOfferApplicable && offer && (
+                <div className="rounded-xl border border-red-200 bg-red-50/80 p-3.5 flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2.5">
+                    <span className="flex size-8 items-center justify-center rounded-lg bg-red-600 text-white shrink-0 shadow-xs">
+                      <LuSparkles className="size-4" />
+                    </span>
+                    <div>
+                      <h4 className="text-xs sm:text-sm font-bold text-red-950 leading-tight">
+                        {offer.title} — {offer.discountPercent}% OFF
+                      </h4>
+                      <p className="text-[11px] sm:text-xs text-red-700/90 font-medium">
+                        {offer.subtitle}. Special discount is auto-applied at checkout!
+                      </p>
+                    </div>
+                  </div>
+                  <Badge className="bg-red-600 text-white text-xs font-bold shrink-0">
+                    Save Rs. {Math.round((Number(product.price || 0) * offer.discountPercent) / 100).toLocaleString()}
+                  </Badge>
+                </div>
+              )}
 
               {product.scheme && (
                 <div className="rounded-xl border border-emerald-200 bg-emerald-50/70 p-4 space-y-2.5">

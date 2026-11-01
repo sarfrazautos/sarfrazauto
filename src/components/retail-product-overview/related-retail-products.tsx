@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { getProducts } from "@/lib/api/products";
 import { useCartStore } from "@/lib/store/cart-store";
+import { useActiveOffer } from "@/lib/hooks/use-active-offer";
 
 export function RelatedRetailProducts({
   currentProductId,
@@ -22,6 +23,9 @@ export function RelatedRetailProducts({
   const router = useRouter();
   const [addedItems, setAddedItems] = useState<Record<string, boolean>>({});
   const addItem = useCartStore((state) => state.addItem);
+  const { offer, isApplicable } = useActiveOffer();
+  const isOfferActive = isApplicable("retail");
+  const discountPercent = isOfferActive && offer ? offer.discountPercent : 0;
 
   const { data, isLoading } = useQuery({
     queryKey: ["related-products", currentProductId, category],
@@ -113,17 +117,26 @@ export function RelatedRetailProducts({
 
               const productHref = product.slug ? `/product-overview/${product.slug}` : `/product-overview?id=${product.id}`;
 
+              const basePrice = Number(product.price || 0);
+              const hasOffer = isOfferActive && discountPercent > 0 && basePrice > 0;
+              const finalPrice = hasOffer ? Math.round(basePrice * (1 - discountPercent / 100)) : basePrice;
+              const crossedPrice = hasOffer ? basePrice : product.originalPrice ? Number(product.originalPrice) : null;
+
               return (
                 <div key={product.id} className="group flex flex-col">
                   <Link
                     href={productHref}
                     className="relative aspect-square w-full rounded-2xl bg-[#f4f4f5] overflow-hidden p-6 flex items-center justify-center transition-all duration-300 group-hover:bg-[#ebebee]"
                   >
-                    {product.badge && (
+                    {hasOffer ? (
+                      <span className="absolute top-3.5 left-3.5 text-xs font-bold px-2.5 py-0.5 rounded-full z-10 bg-red-600 text-white shadow-xs">
+                        {discountPercent}% OFF
+                      </span>
+                    ) : product.badge ? (
                       <span className="absolute top-3.5 left-3.5 text-xs font-semibold px-2.5 py-0.5 rounded-full z-10 bg-red-100 text-red-600">
                         {product.badge}
                       </span>
-                    )}
+                    ) : null}
                     <img
                       src={primaryImage}
                       alt={product.name}
@@ -136,9 +149,16 @@ export function RelatedRetailProducts({
                       <h3 className="font-medium text-neutral-900 group-hover/title:text-red-600 transition-colors text-sm md:text-base leading-snug line-clamp-2">
                         {product.name}
                       </h3>
-                      <p className="font-semibold text-neutral-900 text-sm md:text-base mt-0.5">
-                        Rs. {Number(product.price || 0).toLocaleString()}
-                      </p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <p className="font-semibold text-neutral-900 text-sm md:text-base">
+                          Rs. {finalPrice.toLocaleString()}
+                        </p>
+                        {crossedPrice && crossedPrice > finalPrice && (
+                          <span className="text-xs md:text-sm text-red-600 line-through font-normal">
+                            Rs. {crossedPrice.toLocaleString()}
+                          </span>
+                        )}
+                      </div>
                     </Link>
 
                     <button

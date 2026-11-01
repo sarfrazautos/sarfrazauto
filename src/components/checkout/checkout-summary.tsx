@@ -10,16 +10,22 @@ import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import { useCart } from "@/lib/store/cart-store";
 import { useCheckoutInfo } from "@/lib/store/checkout-store";
+import { useActiveOffer } from "@/lib/hooks/use-active-offer";
 
 export function CheckoutSummary({ className = "" }: { className?: string }) {
   const router = useRouter();
   const { items, retailSubtotal, wholesaleSubtotal } = useCart();
   const { info } = useCheckoutInfo();
+  const { offer, isApplicable } = useActiveOffer();
 
   const subtotal = retailSubtotal + wholesaleSubtotal;
   const isPickup = info.deliveryMethod === "pickup";
   const shipping = isPickup || subtotal >= 5000 || subtotal === 0 ? 0 : 250;
-  const total = subtotal + shipping;
+
+  const discountRetail = isApplicable("retail") && offer ? Math.round((retailSubtotal * offer.discountPercent) / 100) : 0;
+  const discountWholesale = isApplicable("wholesale") && offer ? Math.round((wholesaleSubtotal * offer.discountPercent) / 100) : 0;
+  const offerDiscount = discountRetail + discountWholesale;
+  const total = Math.max(0, subtotal - offerDiscount + shipping);
 
   const handleContinue = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -132,6 +138,13 @@ export function CheckoutSummary({ className = "" }: { className?: string }) {
               {shipping === 0 ? (isPickup ? "Pickup (Free)" : "Free") : `Rs. ${shipping}`}
             </span>
           </div>
+
+          {offerDiscount > 0 && offer && (
+            <div className="flex items-center justify-between text-emerald-600 text-xs sm:text-sm">
+              <span>Special Deal ({offer.discountPercent}% OFF)</span>
+              <span className="font-semibold">-Rs. {offerDiscount.toLocaleString()}</span>
+            </div>
+          )}
 
           <Separator />
 

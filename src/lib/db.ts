@@ -11,8 +11,9 @@ import * as returnsSchema from "@/db/schema/returns"
 import * as agingReportsSchema from "@/db/schema/aging-reports"
 import * as customerPortalSchema from "@/db/schema/customer-portal"
 import * as invoicesSchema from "@/db/schema/invoices"
+import * as offersSchema from "@/db/schema/offers"
 
-const schema = { ...productsSchema, ...ordersSchema, ...messagesSchema, ...authSchema, ...schemesSchema, ...paymentsSchema, ...dealerRequestsSchema, ...returnsSchema, ...agingReportsSchema, ...customerPortalSchema, ...invoicesSchema }
+const schema = { ...productsSchema, ...ordersSchema, ...messagesSchema, ...authSchema, ...schemesSchema, ...paymentsSchema, ...dealerRequestsSchema, ...returnsSchema, ...agingReportsSchema, ...customerPortalSchema, ...invoicesSchema, ...offersSchema }
 
 export const sql = neon(process.env.DATABASE_URL!)
 export const db = drizzle(sql, { schema })

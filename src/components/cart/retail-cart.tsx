@@ -18,6 +18,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useCart } from "@/lib/store/cart-store";
+import { useActiveOffer } from "@/lib/hooks/use-active-offer";
 
 export function RetailCart({ className = "" }: { className?: string }) {
   const { retailItems, retailCount, updateQuantity, removeItem } = useCart();
@@ -37,10 +38,13 @@ export function RetailCart({ className = "" }: { className?: string }) {
     }
   };
 
+  const { offer, isApplicable } = useActiveOffer();
   const subtotal = retailItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
-  const discount = couponApplied && subtotal > 0 ? Math.min(1000, subtotal) : 0;
+  const couponDiscount = couponApplied && subtotal > 0 ? Math.min(1000, subtotal) : 0;
+  const offerDiscount = isApplicable("retail") && offer && subtotal > 0 ? Math.round((subtotal * offer.discountPercent) / 100) : 0;
+  const totalDiscount = couponDiscount + offerDiscount;
   const shipping = subtotal >= 5000 || subtotal === 0 ? 0 : 250;
-  const total = Math.max(0, subtotal - discount + shipping);
+  const total = Math.max(0, subtotal - totalDiscount + shipping);
 
   return (
     <div className={cn("w-full", className)}>
@@ -194,10 +198,10 @@ export function RetailCart({ className = "" }: { className?: string }) {
                   Apply
                 </Button>
               </div>
-              {couponApplied && discount > 0 && (
+              {couponApplied && couponDiscount > 0 && (
                 <p className="text-[11px] text-emerald-600 font-medium flex items-center gap-1">
                   <Check className="size-3" />
-                  Code applied (-Rs. {discount.toLocaleString()})
+                  Code applied (-Rs. {couponDiscount.toLocaleString()})
                 </p>
               )}
               {couponError && (
@@ -225,10 +229,17 @@ export function RetailCart({ className = "" }: { className?: string }) {
                 </span>
               </div>
 
-              {couponApplied && discount > 0 && (
+              {couponApplied && couponDiscount > 0 && (
                 <div className="flex items-center justify-between text-red-600">
                   <span>Promo discount</span>
-                  <span className="font-semibold">-Rs. {discount.toLocaleString()}</span>
+                  <span className="font-semibold">-Rs. {couponDiscount.toLocaleString()}</span>
+                </div>
+              )}
+
+              {offerDiscount > 0 && offer && (
+                <div className="flex items-center justify-between text-emerald-600">
+                  <span>Special Deal ({offer.discountPercent}% OFF)</span>
+                  <span className="font-semibold">-Rs. {offerDiscount.toLocaleString()}</span>
                 </div>
               )}
             </div>
@@ -240,9 +251,9 @@ export function RetailCart({ className = "" }: { className?: string }) {
                   Rs. {total.toLocaleString()}
                 </span>
               </div>
-              {discount > 0 && (
+              {totalDiscount > 0 && (
                 <p className="text-xs text-right text-emerald-600 font-medium">
-                  You save Rs. {discount.toLocaleString()}
+                  You save Rs. {totalDiscount.toLocaleString()}
                 </p>
               )}
             </div>
