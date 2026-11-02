@@ -40,6 +40,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { AdminPagination } from "@/components/admin-dashboard/admin-pagination"
+import { DealerDiscountCell } from "@/components/admin-dashboard/dealer-discount-cell"
 import { getDealerRequests, updateDealerRequestStatus } from "@/lib/api/dealer-requests"
 
 export function AdminDealerRequestsTable() {
@@ -156,6 +157,7 @@ export function AdminDealerRequestsTable() {
                   <TableHead className="text-xs font-semibold text-neutral-700">Owner Name</TableHead>
                   <TableHead className="text-xs font-semibold text-neutral-700">Contact & City</TableHead>
                   <TableHead className="text-xs font-semibold text-neutral-700">CNIC / NTN</TableHead>
+                  <TableHead className="text-xs font-semibold text-neutral-700 text-center">Discount</TableHead>
                   <TableHead className="text-xs font-semibold text-neutral-700">Date</TableHead>
                   <TableHead className="text-xs font-semibold text-neutral-700">Status</TableHead>
                   <TableHead className="text-xs font-semibold text-neutral-700 text-right">Actions</TableHead>
@@ -164,7 +166,7 @@ export function AdminDealerRequestsTable() {
               <TableBody>
                 {isLoading ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="h-32 text-center text-xs text-neutral-500">
+                    <TableCell colSpan={8} className="h-32 text-center text-xs text-neutral-500">
                       <div className="flex items-center justify-center gap-2">
                         <Loader2 className="size-4 animate-spin" />
                         <span>Loading dealer requests...</span>
@@ -173,7 +175,7 @@ export function AdminDealerRequestsTable() {
                   </TableRow>
                 ) : requests.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="h-32 text-center text-xs text-neutral-500">
+                    <TableCell colSpan={8} className="h-32 text-center text-xs text-neutral-500">
                       No dealer verification requests found.
                     </TableCell>
                   </TableRow>
@@ -197,6 +199,14 @@ export function AdminDealerRequestsTable() {
                       <TableCell>
                         <div className="font-mono text-neutral-700 text-[11px]">{r.cnic || "—"}</div>
                         <div className="text-[11px] text-neutral-400">NTN: {r.ntn || "Unregistered"}</div>
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <DealerDiscountCell
+                          dealerId={r.id}
+                          currentDiscount={r.discountPercentage || 0}
+                          shopName={r.shopName}
+                          status={r.status}
+                        />
                       </TableCell>
                       <TableCell className="text-neutral-600 whitespace-nowrap">
                         {formatDate(r.submittedAt || r.createdAt)}
@@ -304,6 +314,15 @@ export function AdminDealerRequestsTable() {
                 <div className="flex justify-between py-1 border-b border-neutral-100">
                   <span className="text-neutral-500">Application Date:</span>
                   <span className="text-neutral-800">{formatDate(selectedDealer.submittedAt || selectedDealer.createdAt)}</span>
+                </div>
+                <div className="flex items-center justify-between py-1 border-b border-neutral-100">
+                  <span className="text-neutral-500">Dealer Discount:</span>
+                  <DealerDiscountCell
+                    dealerId={selectedDealer.id}
+                    currentDiscount={selectedDealer.discountPercentage || 0}
+                    shopName={selectedDealer.shopName}
+                    status={selectedDealer.status}
+                  />
                 </div>
                 <div className="flex flex-col py-1">
                   <span className="text-neutral-500 mb-0.5">Physical Address:</span>

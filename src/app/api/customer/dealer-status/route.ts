@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { db } from "@/lib/db"
 import { dealerRequests } from "@/db/schema/dealer-requests"
+import { customerPortalProfiles } from "@/db/schema/customer-portal"
 import { user } from "@/db/schema/auth"
 import { auth } from "@/lib/auth"
 import { eq, desc } from "drizzle-orm"
@@ -18,11 +19,27 @@ export async function GET(req: Request) {
         isAuthenticated: false,
         isApproved: false,
         status: "unauthenticated",
+        discountPercentage: 0,
       })
     }
 
     const email = session.user.email.trim().toLowerCase()
     const isAdmin = email === "admin@sarfrazautos.com" || (session.user as any).role === "admin"
+
+    const [profile] = await db
+      .select({ discountPercentage: customerPortalProfiles.discountPercentage })
+      .from(customerPortalProfiles)
+      .where(eq(customerPortalProfiles.email, email))
+      .limit(1)
+
+    const [latestReq] = await db
+      .select()
+      .from(dealerRequests)
+      .where(eq(dealerRequests.email, email))
+      .orderBy(desc(dealerRequests.createdAt))
+      .limit(1)
+
+    const discountPercentage = Number(profile?.discountPercentage ?? latestReq?.discountPercentage ?? 0)
 
     if (isAdmin) {
       return NextResponse.json({
@@ -33,6 +50,7 @@ export async function GET(req: Request) {
         role: "admin",
         shopName: "Sarfraz Autos Admin",
         ownerName: session.user.name,
+        discountPercentage,
       })
     }
 
@@ -50,15 +68,9 @@ export async function GET(req: Request) {
         status: "Approved",
         role: "dealer",
         shopName: dbUser.shopName || session.user.name,
+        discountPercentage,
       })
     }
-
-    const [latestReq] = await db
-      .select()
-      .from(dealerRequests)
-      .where(eq(dealerRequests.email, email))
-      .orderBy(desc(dealerRequests.createdAt))
-      .limit(1)
 
     if (latestReq) {
       const isApproved = latestReq.status.toLowerCase() === "approved"
@@ -70,6 +82,7 @@ export async function GET(req: Request) {
         shopName: latestReq.shopName,
         ownerName: latestReq.ownerName,
         submittedAt: latestReq.submittedAt,
+        discountPercentage,
       })
     }
 
@@ -79,6 +92,7 @@ export async function GET(req: Request) {
       isApproved: false,
       status: "None",
       shopName: dbUser?.shopName || null,
+      discountPercentage: 0,
     })
   } catch (error: any) {
     return NextResponse.json(

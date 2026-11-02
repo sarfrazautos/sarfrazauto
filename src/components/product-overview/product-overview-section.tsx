@@ -25,6 +25,7 @@ import { getProductById, getProducts } from "@/lib/api/products";
 import { getBrandLogos } from "@/lib/brand-logos";
 import { useCartStore } from "@/lib/store/cart-store";
 import { useActiveOffer } from "@/lib/hooks/use-active-offer";
+import { useDealerDiscount } from "@/lib/hooks/use-dealer-discount";
 import RelatedProducts from "./related-products";
 
 function ProductOverviewContent({
@@ -45,6 +46,7 @@ function ProductOverviewContent({
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [isAdded, setIsAdded] = useState(false);
   const addItem = useCartStore((state) => state.addItem);
+  const { isDealer, discountPercentage, calculateDiscountedPrice } = useDealerDiscount();
 
   const { data: product, isLoading, isError } = useQuery({
     queryKey: ["product-detail", productIdentifier, defaultType],
@@ -57,7 +59,9 @@ function ProductOverviewContent({
     },
   });
 
-  const isWholesale = (product?.type || defaultType).toLowerCase() === "wholesale";
+  const isWholesale =
+    defaultType === "wholesale" ||
+    product?.type?.toLowerCase() === "wholesale";
 
   const { offer, isApplicable } = useActiveOffer();
   const isOfferApplicable = product ? isApplicable(isWholesale ? "wholesale" : "retail") : false;
@@ -73,15 +77,21 @@ function ProductOverviewContent({
     const mainImg =
       product.images?.[product.mainImageIndex || 0] || product.images?.[0] || "/bike-engine.png";
 
+    const finalPrice = isWholesale && isDealer && discountPercentage > 0
+      ? calculateDiscountedPrice(Number(product.price) || 0)
+      : Number(product.price) || 0;
+
     addItem({
       productId: product.id,
       type: isWholesale ? "wholesale" : "retail",
       title: product.name,
       category: product.category,
-      price: Number(product.price) || 0,
+      price: finalPrice,
       image: mainImg,
       color: currentColor,
-      specs: currentColor || product.compatibleBike || "Standard Fit",
+      specs: isWholesale && isDealer && discountPercentage > 0
+        ? `Dealer Tier (${discountPercentage}% Discount)`
+        : (currentColor || product.compatibleBike || "Standard Fit"),
       packaging: isWholesale ? "Sealed Export Master Carton" : undefined,
       inStock: product.stockStatus !== "out_of_stock",
     });
@@ -193,11 +203,11 @@ function ProductOverviewContent({
   const colors = (
     Array.isArray(product.colors)
       ? product.colors.filter(
-          (c: any) =>
-            typeof c === "string" &&
-            c.trim().length > 0 &&
-            c.trim().toLowerCase() !== "standard"
-        )
+        (c: any) =>
+          typeof c === "string" &&
+          c.trim().length > 0 &&
+          c.trim().toLowerCase() !== "standard"
+      )
       : []
   ) as string[];
 
@@ -372,6 +382,35 @@ function ProductOverviewContent({
                 )}
               </div>
 
+              {isWholesale && isDealer && discountPercentage > 0 && (
+                <div className="rounded-xl border border-emerald-300 bg-emerald-50/90 p-3.5 flex items-center justify-between gap-3 shadow-2xs">
+                  <div className="flex items-center gap-2.5">
+                    <span className="flex size-9 items-center justify-center rounded-lg bg-emerald-600 text-white shrink-0 shadow-xs">
+                      <LuSparkles className="size-4" />
+                    </span>
+                    <div>
+                      <h4 className="text-xs sm:text-sm font-bold text-emerald-950 flex items-center gap-1.5 flex-wrap">
+                        <span>Wholesale Dealer Price</span>
+                        <span className="bg-emerald-200/90 text-emerald-800 text-[10px] sm:text-xs px-2 py-0.5 rounded-full font-bold">
+                          {discountPercentage}% Extra Off
+                        </span>
+                      </h4>
+                      <p className="text-[11px] sm:text-xs text-emerald-700/90 font-medium mt-0.5">
+                        Your exclusive dealer discount approved by Sarfraz Autos.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <span className="text-[11px] text-neutral-400 line-through block">
+                      Rs. {Number(product.price).toLocaleString()}
+                    </span>
+                    <span className="text-lg sm:text-xl font-bold text-emerald-700">
+                      Rs. {calculateDiscountedPrice(Number(product.price)).toLocaleString()}
+                    </span>
+                  </div>
+                </div>
+              )}
+
               {isOfferApplicable && offer && (
                 <div className="rounded-xl border border-red-200 bg-red-50/80 p-3.5 flex items-center justify-between gap-3">
                   <div className="flex items-center gap-2.5">
@@ -473,7 +512,7 @@ function ProductOverviewContent({
                   <span>
                     Compatible with{" "}
                     {product.compatibleBike &&
-                    !product.compatibleBike.toLowerCase().includes("all")
+                      !product.compatibleBike.toLowerCase().includes("all")
                       ? `${product.compatibleBike} & all bike models`
                       : "all bike models"}
                   </span>
@@ -505,8 +544,8 @@ function ProductOverviewContent({
                           {isOutOfStock
                             ? "Out of Stock"
                             : isWholesale
-                            ? "Add to Wholesale Cart"
-                            : "Add to Cart"}
+                              ? "Add to Wholesale Cart"
+                              : "Add to Cart"}
                         </span>
                       </>
                     )}

@@ -29,6 +29,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { AdminPagination } from "@/components/admin-dashboard/admin-pagination"
+import { DealerDiscountCell } from "@/components/admin-dashboard/dealer-discount-cell"
 import {
   Dialog,
   DialogContent,
@@ -228,6 +229,7 @@ export function AdminDealerRequestsSection() {
                 <TableHead className="text-xs font-semibold text-neutral-700">Owner Name</TableHead>
                 <TableHead className="text-xs font-semibold text-neutral-700">Contact & City</TableHead>
                 <TableHead className="text-xs font-semibold text-neutral-700">CNIC / NTN</TableHead>
+                <TableHead className="text-xs font-semibold text-neutral-700 text-center">Discount</TableHead>
                 <TableHead className="text-xs font-semibold text-neutral-700">Date</TableHead>
                 <TableHead className="text-xs font-semibold text-neutral-700">Status</TableHead>
                 <TableHead className="text-xs font-semibold text-neutral-700 text-right">Actions</TableHead>
@@ -236,7 +238,7 @@ export function AdminDealerRequestsSection() {
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8 text-neutral-500 text-xs">
+                  <TableCell colSpan={8} className="text-center py-8 text-neutral-500 text-xs">
                     <div className="flex items-center justify-center gap-2">
                       <Loader2 className="size-4 animate-spin" />
                       <span>Loading dealer requests...</span>
@@ -245,7 +247,7 @@ export function AdminDealerRequestsSection() {
                 </TableRow>
               ) : requests.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8 text-neutral-500 text-xs">
+                  <TableCell colSpan={8} className="text-center py-8 text-neutral-500 text-xs">
                     No dealer applications match your search.
                   </TableCell>
                 </TableRow>
@@ -269,6 +271,14 @@ export function AdminDealerRequestsSection() {
                     <TableCell>
                       <div className="font-mono text-neutral-700 text-[11px]">{r.cnic || "—"}</div>
                       <div className="text-[11px] text-neutral-400">NTN: {r.ntn || "Unregistered"}</div>
+                    </TableCell>
+                    <TableCell className="text-center">
+                      <DealerDiscountCell
+                        dealerId={r.id}
+                        currentDiscount={r.discountPercentage || 0}
+                        shopName={r.shopName}
+                        status={r.status}
+                      />
                     </TableCell>
                     <TableCell className="text-neutral-600 whitespace-nowrap">
                       {formatDate(r.submittedAt || r.createdAt)}
@@ -406,6 +416,18 @@ export function AdminDealerRequestsSection() {
                 <div className="col-span-2">
                   <span className="text-neutral-500">Shop Physical Address</span>
                   <p className="font-medium text-neutral-800 mt-0.5">{selectedDealer.address || "—"}</p>
+                </div>
+                <div className="col-span-2 flex items-center justify-between p-2.5 rounded-lg bg-neutral-50 border border-neutral-200">
+                  <div>
+                    <span className="text-neutral-700 font-medium">Assigned Dealer Discount</span>
+                    <p className="text-[11px] text-neutral-400">Extra percentage off wholesale products</p>
+                  </div>
+                  <DealerDiscountCell
+                    dealerId={selectedDealer.id}
+                    currentDiscount={selectedDealer.discountPercentage || 0}
+                    shopName={selectedDealer.shopName}
+                    status={selectedDealer.status}
+                  />
                 </div>
               </div>
 

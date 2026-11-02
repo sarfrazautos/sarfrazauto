@@ -27,18 +27,40 @@ export async function getDealerRequestById(id: string | number) {
   return data.request
 }
 
-export async function updateDealerRequestStatus(id: string | number, status: string) {
+export async function updateDealerRequestStatus(id: string | number, status: string, discountPercentage?: number) {
+  const payload: Record<string, any> = { status }
+  if (discountPercentage !== undefined) {
+    payload.discountPercentage = discountPercentage
+  }
+
   const res = await fetch(`/api/dealer-requests/${id}`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ status }),
+    body: JSON.stringify(payload),
   })
 
   const data = await res.json()
   if (!res.ok || !data.success) {
     throw new Error(data.error || "Failed to update dealer request status")
+  }
+
+  return data.request
+}
+
+export async function updateDealerRequest(id: string | number, payload: Record<string, any>) {
+  const res = await fetch(`/api/dealer-requests/${id}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  })
+
+  const data = await res.json()
+  if (!res.ok || !data.success) {
+    throw new Error(data.error || "Failed to update dealer request")
   }
 
   return data.request

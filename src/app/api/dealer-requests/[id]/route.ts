@@ -62,6 +62,9 @@ export async function PUT(
     if (body.cnic !== undefined) updateData.cnic = body.cnic
     if (body.ntn !== undefined) updateData.ntn = body.ntn
     if (body.notes !== undefined) updateData.notes = body.notes
+    if (body.discountPercentage !== undefined) {
+      updateData.discountPercentage = Math.max(0, parseInt(String(body.discountPercentage), 10) || 0)
+    }
 
     const [updated] = await db
       .update(dealerRequests)
@@ -76,9 +79,25 @@ export async function PUT(
       )
     }
 
+    const cleanEmail = updated.email.trim().toLowerCase()
+    const targetDiscount = body.discountPercentage !== undefined
+      ? Math.max(0, parseInt(String(body.discountPercentage), 10) || 0)
+      : (updated.discountPercentage || 0)
+
+    if (body.discountPercentage !== undefined && !body.status) {
+      try {
+        await db
+          .update(customerPortalProfiles)
+          .set({
+            discountPercentage: targetDiscount,
+            updatedAt: new Date(),
+          })
+          .where(eq(customerPortalProfiles.email, cleanEmail))
+      } catch {}
+    }
+
     if (body.status) {
       const lowerStatus = body.status.toLowerCase()
-      const cleanEmail = updated.email.trim().toLowerCase()
 
       if (lowerStatus === "approved") {
         try {
@@ -111,6 +130,7 @@ export async function PUT(
                 phone: updated.phone,
                 preferredCity: updated.city,
                 shopAddress: updated.address || matchedProfile.shopAddress,
+                discountPercentage: targetDiscount,
                 updatedAt: new Date(),
               })
               .where(eq(customerPortalProfiles.id, matchedProfile.id))
@@ -123,6 +143,7 @@ export async function PUT(
               phone: updated.phone,
               preferredCity: updated.city,
               shopAddress: updated.address || `${updated.city}, Pakistan`,
+              discountPercentage: targetDiscount,
             })
           }
         } catch {}

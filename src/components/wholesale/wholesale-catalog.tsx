@@ -36,6 +36,7 @@ function getPaginationItems(current: number, total: number) {
 }
 import { getProducts } from "@/lib/api/products";
 import { useCartStore } from "@/lib/store/cart-store";
+import { useDealerDiscount } from "@/lib/hooks/use-dealer-discount";
 
 export interface WholesaleProduct {
   id: string | number;
@@ -73,6 +74,7 @@ export function WholesaleCatalog({
   const router = useRouter();
   const [addedItems, setAddedItems] = useState<Record<string, boolean>>({});
   const addItem = useCartStore((state) => state.addItem);
+  const { isDealer, discountPercentage, calculateDiscountedPrice } = useDealerDiscount();
 
   const categoryQuery = !activeCategory || activeCategory === "All" ? "" : activeCategory;
   const brandQuery =
@@ -117,14 +119,18 @@ export function WholesaleCatalog({
       product.image ||
       "/wholesale-bulk.png";
 
+    const finalPrice = isDealer && discountPercentage > 0
+      ? calculateDiscountedPrice(Number(product.price) || 0)
+      : Number(product.price) || 0;
+
     addItem({
       productId: product.id,
       type: "wholesale",
       title: product.name,
       category: product.category,
-      price: Number(product.price) || 0,
+      price: finalPrice,
       image: mainImg,
-      specs: product.compatibleBike || "Master Carton Packaging",
+      specs: isDealer && discountPercentage > 0 ? `Dealer ${discountPercentage}% Discount Applied` : (product.compatibleBike || "Master Carton Packaging"),
       packaging: "Sealed Export Master Carton",
       inStock: product.stockStatus !== "out_of_stock",
     });
@@ -266,6 +272,18 @@ export function WholesaleCatalog({
                             </span>
                           )}
                         </div>
+
+                        {isDealer && discountPercentage > 0 && (
+                          <div className="mt-2 p-1.5 px-2 rounded-lg bg-emerald-50 border border-emerald-200/90 flex items-center justify-between text-xs">
+                            <span className="text-[11px] font-semibold text-emerald-800 flex items-center gap-1">
+                              <span className="size-1.5 rounded-full bg-emerald-600 animate-pulse" />
+                              Dealer {discountPercentage}% Off
+                            </span>
+                            <span className="text-xs font-bold text-emerald-700">
+                              Rs. {calculateDiscountedPrice(Number(product.price)).toLocaleString()}
+                            </span>
+                          </div>
+                        )}
                       </Link>
 
                       <Button

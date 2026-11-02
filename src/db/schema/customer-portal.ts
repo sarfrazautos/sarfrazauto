@@ -10,6 +10,7 @@ export const customerPortalProfiles = pgTable("customer_portal_profiles", {
   shopAddress: text("shop_address").notNull().default("Shop #14, Bilal Auto Market, Montgomery Road, Lahore"),
   preferredCity: text("preferred_city").notNull().default("Lahore"),
   creditLimit: integer("credit_limit").notNull().default(1500000),
+  discountPercentage: integer("discount_percentage").notNull().default(0),
   totalPurchases: integer("total_purchases").notNull().default(0),
   totalMoneySpent: integer("total_money_spent").notNull().default(0),
   createdAt: timestamp("created_at").defaultNow(),
