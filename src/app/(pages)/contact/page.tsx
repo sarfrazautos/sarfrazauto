@@ -5,9 +5,18 @@ import BranchLocations from "@/components/contact/branch-locations";
 import Footer from "@/components/footer";
 
 export const metadata: Metadata = {
-  title: "Contact Us | Sarfraz Autos Karachi",
+  title: "Contact Sarfraz Autos | Motorcycle Parts Shop Karachi – WhatsApp & Phone",
   description:
-    "Get in touch with Sarfraz Autos for motorcycle spare parts inquiries, wholesale bulk orders, and retailer supply across Karachi.",
+    "Contact Sarfraz Autos for motorcycle spare parts, bulk wholesale orders, and dealer inquiries. Visit our shop in Taj Mahal Market Karachi or call/WhatsApp +92-333-1285556.",
+  alternates: {
+    canonical: "https://www.sarfrazautos.com/contact",
+  },
+  openGraph: {
+    title: "Contact Sarfraz Autos | Karachi Motorcycle Parts",
+    description:
+      "Get in touch with Sarfraz Autos for wholesale & retail motorcycle spare parts. WhatsApp, phone & in-store at Karachi.",
+    url: "https://www.sarfrazautos.com/contact",
+  },
 };
 
 export default function ContactPage() {
