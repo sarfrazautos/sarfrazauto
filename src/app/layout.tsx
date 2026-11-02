@@ -159,7 +159,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         },
       },
       {
-        "@type": "Store",
+        "@type": "AutoPartsStore",
         "@id": "https://www.sarfrazautos.com/#store",
         name: "Sarfraz Autos",
         description:

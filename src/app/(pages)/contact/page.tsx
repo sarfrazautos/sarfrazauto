@@ -20,8 +20,33 @@ export const metadata: Metadata = {
 };
 
 export default function ContactPage() {
+  const contactJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "ContactPage",
+    name: "Contact Sarfraz Autos",
+    url: "https://www.sarfrazautos.com/contact",
+    description: "Contact information, branch location, and wholesale inquiries for Sarfraz Autos in Karachi, Pakistan.",
+    mainEntity: {
+      "@type": "AutoPartsStore",
+      name: "Sarfraz Autos",
+      telephone: "+92-333-1285556",
+      address: {
+        "@type": "PostalAddress",
+        streetAddress: "Taj Mahal Market, M.A. Jinnah Road",
+        addressLocality: "Karachi",
+        addressRegion: "Sindh",
+        postalCode: "74200",
+        addressCountry: "PK",
+      },
+    },
+  };
+
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(contactJsonLd) }}
+      />
       <Navbar />
       <main className="min-h-screen bg-white">
         <ContactSection />
