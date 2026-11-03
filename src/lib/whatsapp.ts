@@ -3,6 +3,10 @@ export function formatWhatsAppPhone(phone?: string | null): string | null {
   const cleaned = phone.replace(/[^0-9]/g, "")
   if (!cleaned) return null
 
+  if (cleaned.startsWith("920") && cleaned.length === 13) {
+    return "92" + cleaned.slice(3)
+  }
+
   if (cleaned.startsWith("92") && cleaned.length >= 12) {
     return cleaned
   }
@@ -16,6 +20,65 @@ export function formatWhatsAppPhone(phone?: string | null): string | null {
   }
 
   return cleaned
+}
+
+export async function sendWhatsAppTemplate({
+  to,
+  templateName,
+  parameters,
+}: {
+  to: string
+  templateName: string
+  parameters: (string | number)[]
+}): Promise<{ success: boolean; data?: any; error?: string }> {
+  const token = process.env.WHATSAPP_ACCESS_TOKEN
+  const phoneId = process.env.WHATSAPP_PHONE_NUMBER_ID
+
+  if (!token || !phoneId) {
+    return { success: false, error: "WhatsApp credentials not configured" }
+  }
+
+  const formattedTo = formatWhatsAppPhone(to)
+  if (!formattedTo) {
+    return { success: false, error: "Invalid phone number" }
+  }
+
+  try {
+    const res = await fetch(`https://graph.facebook.com/v22.0/${phoneId}/messages`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        messaging_product: "whatsapp",
+        to: formattedTo,
+        type: "template",
+        template: {
+          name: templateName,
+          language: { code: "en_US" },
+          components: [
+            {
+              type: "body",
+              parameters: parameters.map((val) => ({
+                type: "text",
+                text: String(val || ""),
+              })),
+            },
+          ],
+        },
+      }),
+    })
+
+    const data = await res.json()
+    if (!res.ok || data.error) {
+      return { success: false, error: data.error?.message || "Template send failed" }
+    }
+
+    return { success: true, data }
+  } catch (err: any) {
+    return { success: false, error: err.message || "Network error" }
+  }
 }
 
 export async function sendWhatsAppMessage({
@@ -112,12 +175,44 @@ ${itemsList}
 
 Our team will dispatch your spare parts shortly. For any inquiries, reach us at ${process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "+92 333 1285556"}.`
 
-  const results = await Promise.allSettled([
-    sendWhatsAppMessage({ to: adminNumber, message: adminMsg }),
-    order.customerPhone
-      ? sendWhatsAppMessage({ to: order.customerPhone, message: customerMsg })
-      : Promise.resolve({ success: false, error: "No customer phone provided" }),
-  ])
+  const sendCustomer = async () => {
+    if (!order.customerPhone) {
+      return { success: false, error: "No customer phone provided" }
+    }
+    const templateResult = await sendWhatsAppTemplate({
+      to: order.customerPhone,
+      templateName: "order_confirmation_alert",
+      parameters: [
+        order.customerName,
+        order.orderNumber.replace("#", ""),
+        order.totalAmount.toLocaleString(),
+        order.customerCity || "Karachi",
+      ],
+    })
+    if (templateResult.success) {
+      return templateResult
+    }
+    return sendWhatsAppMessage({ to: order.customerPhone, message: customerMsg })
+  }
+
+  const sendAdmin = async () => {
+    const templateResult = await sendWhatsAppTemplate({
+      to: adminNumber,
+      templateName: "admin_order_notification",
+      parameters: [
+        order.orderNumber.replace("#", ""),
+        order.customerName,
+        order.totalAmount.toLocaleString(),
+        order.customerCity || "Karachi",
+      ],
+    })
+    if (templateResult.success) {
+      return templateResult
+    }
+    return sendWhatsAppMessage({ to: adminNumber, message: adminMsg })
+  }
+
+  const results = await Promise.allSettled([sendAdmin(), sendCustomer()])
 
   return results
 }
