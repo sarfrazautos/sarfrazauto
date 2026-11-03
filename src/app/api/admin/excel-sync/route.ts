@@ -152,6 +152,7 @@ export async function POST(req: Request) {
             brand: matchedDbProduct.brand,
             category: matchedDbProduct.category,
             compatibleBike: matchedDbProduct.compatibleBike,
+            type: matchedDbProduct.type || "wholesale",
             oldPrice,
             newPrice,
             diff,

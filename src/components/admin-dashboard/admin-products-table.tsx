@@ -151,6 +151,11 @@ export function AdminProductsTable() {
               </button>
             ))}
           </div>
+          <Link href="/admin/products/manage">
+            <Button size="sm" variant="outline" className="h-8 text-xs cursor-pointer gap-1.5">
+              Bulk Manage &amp; Hide
+            </Button>
+          </Link>
           <Link href="/admin/products/upload">
             <Button size="sm" className="h-8 text-xs cursor-pointer">
               + Add Product

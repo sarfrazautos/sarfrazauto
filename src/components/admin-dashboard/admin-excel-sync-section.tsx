@@ -1,22 +1,20 @@
 "use client"
 
-import { useState, useRef } from "react"
+import { useState, useRef, useMemo } from "react"
 import Link from "next/link"
 import {
   FileSpreadsheet,
   Upload,
   CheckCircle2,
-  AlertCircle,
-  PlusCircle,
   TrendingUp,
   TrendingDown,
   RefreshCw,
   Search,
-  Filter,
-  ArrowRight,
-  Layers,
   ChevronRight,
-  Sparkles,
+  SlidersHorizontal,
+  Layers,
+  Bike,
+  Tag,
 } from "lucide-react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
@@ -97,6 +95,19 @@ export function AdminExcelSyncSection() {
   const [activeTab, setActiveTab] = useState<"updates" | "new" | "unchanged">("updates")
   const [searchFilter, setSearchFilter] = useState("")
 
+  const [updateExistingPrices, setUpdateExistingPrices] = useState(true)
+  const [addNewProducts, setAddNewProducts] = useState(true)
+
+  const [includeWholesale, setIncludeWholesale] = useState(true)
+  const [includeRetail, setIncludeRetail] = useState(false)
+
+  const [allBrandsSelected, setAllBrandsSelected] = useState(true)
+  const [selectedBrands, setSelectedBrands] = useState<string[]>([])
+
+  const [allModelsSelected, setAllModelsSelected] = useState(true)
+  const [selectedModels, setSelectedModels] = useState<string[]>([])
+  const [modelSearch, setModelSearch] = useState("")
+
   const [priceUpdates, setPriceUpdates] = useState<any[]>([])
   const [newProducts, setNewProducts] = useState<any[]>([])
   const [unchanged, setUnchanged] = useState<any[]>([])
@@ -105,6 +116,56 @@ export function AdminExcelSyncSection() {
   const [bulkCategory, setBulkCategory] = useState("Others")
   const [bulkBike, setBulkBike] = useState("All Models")
   const [bulkType, setBulkType] = useState("wholesale")
+
+  const availableBrands = useMemo(() => {
+    const set = new Set<string>()
+    ;[...priceUpdates, ...newProducts, ...unchanged].forEach((item) => {
+      if (item.brand) set.add(item.brand.trim())
+    })
+    return Array.from(set).filter(Boolean).sort()
+  }, [priceUpdates, newProducts, unchanged])
+
+  const availableModels = useMemo(() => {
+    const set = new Set<string>()
+    ;[...priceUpdates, ...newProducts, ...unchanged].forEach((item) => {
+      if (item.model) set.add(item.model.trim())
+      else if (item.compatibleBike && item.compatibleBike !== "All Models") set.add(item.compatibleBike.trim())
+    })
+    return Array.from(set).filter(Boolean).sort()
+  }, [priceUpdates, newProducts, unchanged])
+
+  const filteredAvailableModels = useMemo(() => {
+    if (!modelSearch.trim()) return availableModels
+    const q = modelSearch.toLowerCase().trim()
+    return availableModels.filter((m) => m.toLowerCase().includes(q))
+  }, [availableModels, modelSearch])
+
+  const matchesType = (itemType?: string) => {
+    const t = (itemType || "wholesale").toLowerCase()
+    if (!includeWholesale && !includeRetail) return false
+    if (includeWholesale && includeRetail) return true
+    if (includeWholesale && (t === "wholesale" || t === "both")) return true
+    if (includeRetail && (t === "retail" || t === "both")) return true
+    return false
+  }
+
+  const matchesBrand = (itemBrand?: string) => {
+    if (allBrandsSelected) return true
+    if (selectedBrands.length === 0) return false
+    return selectedBrands.includes(itemBrand || "Crown")
+  }
+
+  const matchesModel = (itemModel?: string, itemBike?: string) => {
+    if (allModelsSelected) return true
+    if (selectedModels.length === 0) return false
+    const m = itemModel?.trim() || ""
+    const b = itemBike?.trim() || ""
+    return selectedModels.includes(m) || selectedModels.includes(b)
+  }
+
+  const matchesAllFilters = (item: any) => {
+    return matchesType(item.type) && matchesBrand(item.brand) && matchesModel(item.model, item.compatibleBike)
+  }
 
   const handleFileSelect = async (file: File) => {
     if (!file.name.endsWith(".xlsx") && !file.name.endsWith(".xls")) {
@@ -121,6 +182,16 @@ export function AdminExcelSyncSection() {
       setNewProducts(data.newProducts || [])
       setUnchanged(data.unchanged || [])
 
+      setAllBrandsSelected(true)
+      setSelectedBrands([])
+      setAllModelsSelected(true)
+      setSelectedModels([])
+      setModelSearch("")
+      setUpdateExistingPrices(true)
+      setAddNewProducts(true)
+      setIncludeWholesale(true)
+      setIncludeRetail(false)
+
       if (data.priceUpdates?.length > 0) {
         setActiveTab("updates")
       } else if (data.newProducts?.length > 0) {
@@ -134,6 +205,28 @@ export function AdminExcelSyncSection() {
       toast.error(err.message || "Failed to analyze Excel file")
     } finally {
       setIsParsing(false)
+    }
+  }
+
+  const toggleBrand = (brand: string) => {
+    if (allBrandsSelected) {
+      setAllBrandsSelected(false)
+      setSelectedBrands([brand])
+    } else {
+      setSelectedBrands((prev) =>
+        prev.includes(brand) ? prev.filter((b) => b !== brand) : [...prev, brand]
+      )
+    }
+  }
+
+  const toggleModel = (model: string) => {
+    if (allModelsSelected) {
+      setAllModelsSelected(false)
+      setSelectedModels([model])
+    } else {
+      setSelectedModels((prev) =>
+        prev.includes(model) ? prev.filter((m) => m !== model) : [...prev, model]
+      )
     }
   }
 
@@ -183,15 +276,25 @@ export function AdminExcelSyncSection() {
           : item
       )
     )
-    toast.success("Applied global settings to selected new products!")
+    toast.success("Applied bulk properties to selected new products!")
   }
 
   const handleApplyChanges = async () => {
-    const selectedUpdates = priceUpdates.filter((u) => u.selected)
-    const selectedNew = newProducts.filter((n) => n.selected)
+    if (!updateExistingPrices && !addNewProducts) {
+      toast.error("Please enable at least one action: 'Update existing products price' or 'Add new products'.")
+      return
+    }
+
+    const selectedUpdates = !updateExistingPrices
+      ? []
+      : priceUpdates.filter((u) => u.selected && matchesAllFilters(u))
+
+    const selectedNew = !addNewProducts
+      ? []
+      : newProducts.filter((n) => n.selected && matchesAllFilters(n))
 
     if (selectedUpdates.length === 0 && selectedNew.length === 0) {
-      toast.error("Please select at least one price update or new product to apply.")
+      toast.error("No selected items match your active filters. Please check items to update or import.")
       return
     }
 
@@ -217,6 +320,29 @@ export function AdminExcelSyncSection() {
     }
   }
 
+  const renderTypeBadge = (type?: string) => {
+    const t = (type || "wholesale").toLowerCase()
+    if (t === "retail") {
+      return (
+        <Badge variant="outline" className="bg-neutral-100 text-neutral-800 border-neutral-200 text-[10px] font-medium">
+          Retail
+        </Badge>
+      )
+    }
+    if (t === "both") {
+      return (
+        <Badge variant="outline" className="bg-neutral-900 text-white border-neutral-900 text-[10px] font-medium">
+          Wholesale + Retail
+        </Badge>
+      )
+    }
+    return (
+      <Badge variant="outline" className="bg-neutral-50 text-neutral-700 border-neutral-200 text-[10px] font-medium">
+        Wholesale
+      </Badge>
+    )
+  }
+
   const availableSheets: string[] = syncData?.sheets || []
 
   const sheetUpdates = selectedSheet === "all" ? priceUpdates : priceUpdates.filter((i) => i.sheet === selectedSheet)
@@ -224,25 +350,41 @@ export function AdminExcelSyncSection() {
   const sheetUnchanged = selectedSheet === "all" ? unchanged : unchanged.filter((i) => i.sheet === selectedSheet)
   const sheetTotal = sheetUpdates.length + sheetNew.length + sheetUnchanged.length
 
-  const filteredUpdates = sheetUpdates.filter(
-    (item) =>
-      item.name.toLowerCase().includes(searchFilter.toLowerCase()) ||
-      (item.itemCode && item.itemCode.toLowerCase().includes(searchFilter.toLowerCase())) ||
-      (item.model && item.model.toLowerCase().includes(searchFilter.toLowerCase()))
-  )
+  const filteredUpdates = sheetUpdates
+    .filter((item) => matchesAllFilters(item))
+    .filter(
+      (item) =>
+        item.name.toLowerCase().includes(searchFilter.toLowerCase()) ||
+        (item.itemCode && item.itemCode.toLowerCase().includes(searchFilter.toLowerCase())) ||
+        (item.model && item.model.toLowerCase().includes(searchFilter.toLowerCase()))
+    )
 
-  const filteredNew = sheetNew.filter(
-    (item) =>
-      item.name.toLowerCase().includes(searchFilter.toLowerCase()) ||
-      (item.itemCode && item.itemCode.toLowerCase().includes(searchFilter.toLowerCase())) ||
-      (item.model && item.model.toLowerCase().includes(searchFilter.toLowerCase()))
-  )
+  const filteredNew = sheetNew
+    .filter((item) => matchesAllFilters(item))
+    .filter(
+      (item) =>
+        item.name.toLowerCase().includes(searchFilter.toLowerCase()) ||
+        (item.itemCode && item.itemCode.toLowerCase().includes(searchFilter.toLowerCase())) ||
+        (item.model && item.model.toLowerCase().includes(searchFilter.toLowerCase()))
+    )
 
-  const filteredUnchanged = sheetUnchanged.filter(
-    (item) =>
-      item.name.toLowerCase().includes(searchFilter.toLowerCase()) ||
-      (item.itemCode && item.itemCode.toLowerCase().includes(searchFilter.toLowerCase()))
-  )
+  const filteredUnchanged = sheetUnchanged
+    .filter((item) => matchesAllFilters(item))
+    .filter(
+      (item) =>
+        item.name.toLowerCase().includes(searchFilter.toLowerCase()) ||
+        (item.itemCode && item.itemCode.toLowerCase().includes(searchFilter.toLowerCase()))
+    )
+
+  const activeSelectedUpdatesCount = !updateExistingPrices
+    ? 0
+    : priceUpdates.filter((u) => u.selected && matchesAllFilters(u)).length
+
+  const activeSelectedNewCount = !addNewProducts
+    ? 0
+    : newProducts.filter((n) => n.selected && matchesAllFilters(n)).length
+
+  const totalSelectedCount = activeSelectedUpdatesCount + activeSelectedNewCount
 
   return (
     <div className="flex flex-col gap-6 px-4 lg:px-6 py-4 md:py-6">
@@ -307,6 +449,379 @@ export function AdminExcelSyncSection() {
         </div>
       ) : (
         <div className="flex flex-col gap-5">
+          <div className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-xs flex flex-col gap-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3.5 border-b border-neutral-100 gap-2">
+              <div>
+                <h3 className="text-sm font-semibold text-neutral-900 tracking-tight flex items-center gap-2">
+                  <SlidersHorizontal className="size-4 text-neutral-700" />
+                  Sync &amp; Filter Options
+                </h3>
+                <p className="text-xs text-neutral-500 mt-0.5">
+                  Refine which items from the sheet are updated or added to your catalog.
+                </p>
+              </div>
+
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => {
+                  setUpdateExistingPrices(true)
+                  setAddNewProducts(true)
+                  setIncludeWholesale(true)
+                  setIncludeRetail(false)
+                  setAllBrandsSelected(true)
+                  setSelectedBrands([])
+                  setAllModelsSelected(true)
+                  setSelectedModels([])
+                  setModelSearch("")
+                  toast.info("Reset all sync options to default.")
+                }}
+                className="h-8 text-xs px-3 rounded-lg cursor-pointer"
+              >
+                Reset All Filters
+              </Button>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+              <div className="space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold text-neutral-800 uppercase tracking-wider">
+                    1. Update Behavior
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  <div
+                    onClick={() => setUpdateExistingPrices(!updateExistingPrices)}
+                    className={`p-3.5 rounded-xl border transition-all cursor-pointer flex items-start gap-3 select-none ${
+                      updateExistingPrices
+                        ? "border-neutral-900 bg-neutral-50/80 shadow-2xs"
+                        : "border-neutral-200 bg-white opacity-60"
+                    }`}
+                  >
+                    <Checkbox
+                      id="check-update-prices"
+                      checked={updateExistingPrices}
+                      onCheckedChange={(c) => setUpdateExistingPrices(Boolean(c))}
+                      className="mt-0.5"
+                    />
+                    <div className="flex flex-col">
+                      <label htmlFor="check-update-prices" className="text-xs font-semibold text-neutral-900 cursor-pointer">
+                        Update existing prices
+                      </label>
+                      <span className="text-[11px] text-neutral-500 mt-0.5 leading-snug">
+                        Sync prices of products already in catalog
+                      </span>
+                    </div>
+                  </div>
+
+                  <div
+                    onClick={() => setAddNewProducts(!addNewProducts)}
+                    className={`p-3.5 rounded-xl border transition-all cursor-pointer flex items-start gap-3 select-none ${
+                      addNewProducts
+                        ? "border-neutral-900 bg-neutral-50/80 shadow-2xs"
+                        : "border-neutral-200 bg-white opacity-60"
+                    }`}
+                  >
+                    <Checkbox
+                      id="check-add-new"
+                      checked={addNewProducts}
+                      onCheckedChange={(c) => setAddNewProducts(Boolean(c))}
+                      className="mt-0.5"
+                    />
+                    <div className="flex flex-col">
+                      <label htmlFor="check-add-new" className="text-xs font-semibold text-neutral-900 cursor-pointer">
+                        Add new products
+                      </label>
+                      <span className="text-[11px] text-neutral-500 mt-0.5 leading-snug">
+                        Import newly discovered sheet items
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold text-neutral-800 uppercase tracking-wider">
+                    2. Product Catalog Type
+                  </span>
+                  <div className="flex items-center gap-1.5 text-xs">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIncludeWholesale(true)
+                        setIncludeRetail(false)
+                        toast.info("Target: Wholesale Only (Retail is untouched)")
+                      }}
+                      className={`px-2 py-0.5 rounded text-[11px] cursor-pointer transition-colors ${
+                        includeWholesale && !includeRetail
+                          ? "bg-neutral-900 text-white font-medium"
+                          : "text-neutral-500 hover:text-neutral-900 bg-neutral-100"
+                      }`}
+                    >
+                      Wholesale Only
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIncludeWholesale(true)
+                        setIncludeRetail(true)
+                        toast.info("Target: Both Wholesale & Retail")
+                      }}
+                      className={`px-2 py-0.5 rounded text-[11px] cursor-pointer transition-colors ${
+                        includeWholesale && includeRetail
+                          ? "bg-neutral-900 text-white font-medium"
+                          : "text-neutral-500 hover:text-neutral-900 bg-neutral-100"
+                      }`}
+                    >
+                      Both
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIncludeWholesale(false)
+                        setIncludeRetail(true)
+                        toast.info("Target: Retail Only")
+                      }}
+                      className={`px-2 py-0.5 rounded text-[11px] cursor-pointer transition-colors ${
+                        !includeWholesale && includeRetail
+                          ? "bg-neutral-900 text-white font-medium"
+                          : "text-neutral-500 hover:text-neutral-900 bg-neutral-100"
+                      }`}
+                    >
+                      Retail Only
+                    </button>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  <div
+                    onClick={() => setIncludeWholesale(!includeWholesale)}
+                    className={`p-3.5 rounded-xl border transition-all cursor-pointer flex items-center justify-between select-none ${
+                      includeWholesale
+                        ? "border-neutral-900 bg-neutral-50/80 shadow-2xs"
+                        : "border-neutral-200 bg-white opacity-60"
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <Checkbox
+                        id="check-wholesale"
+                        checked={includeWholesale}
+                        onCheckedChange={(c) => setIncludeWholesale(Boolean(c))}
+                      />
+                      <label htmlFor="check-wholesale" className="text-xs font-semibold text-neutral-900 cursor-pointer">
+                        Wholesale Items
+                      </label>
+                    </div>
+                    <Badge variant="outline" className="text-[10px] bg-white text-neutral-700 border-neutral-200">
+                      Wholesale
+                    </Badge>
+                  </div>
+
+                  <div
+                    onClick={() => setIncludeRetail(!includeRetail)}
+                    className={`p-3.5 rounded-xl border transition-all cursor-pointer flex items-center justify-between select-none ${
+                      includeRetail
+                        ? "border-neutral-900 bg-neutral-50/80 shadow-2xs"
+                        : "border-neutral-200 bg-white opacity-60"
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <Checkbox
+                        id="check-retail"
+                        checked={includeRetail}
+                        onCheckedChange={(c) => setIncludeRetail(Boolean(c))}
+                      />
+                      <label htmlFor="check-retail" className="text-xs font-semibold text-neutral-900 cursor-pointer">
+                        Retail Items
+                      </label>
+                    </div>
+                    <Badge variant="outline" className="text-[10px] bg-white text-neutral-700 border-neutral-200">
+                      Retail
+                    </Badge>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 pt-4 border-t border-neutral-100">
+              <div className="space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold text-neutral-800 uppercase tracking-wider flex items-center gap-1.5">
+                    <Tag className="size-3.5 text-neutral-500" />
+                    3. Brands Filter
+                  </span>
+                  <div className="flex items-center gap-2 text-xs">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAllBrandsSelected(true)
+                        setSelectedBrands([])
+                      }}
+                      className={`cursor-pointer hover:underline ${allBrandsSelected ? "font-bold text-neutral-900" : "text-neutral-500"}`}
+                    >
+                      All
+                    </button>
+                    <span className="text-neutral-300">|</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAllBrandsSelected(false)
+                        setSelectedBrands([])
+                      }}
+                      className="cursor-pointer text-neutral-500 hover:text-neutral-900"
+                    >
+                      Clear
+                    </button>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 p-2.5 rounded-xl border border-neutral-200 bg-neutral-50/50 max-h-48 overflow-y-auto">
+                  <div
+                    onClick={() => {
+                      const next = !allBrandsSelected
+                      setAllBrandsSelected(next)
+                      if (next) setSelectedBrands([])
+                    }}
+                    className={`flex items-center gap-2 px-2.5 py-2 rounded-lg border text-xs font-medium cursor-pointer transition-colors select-none ${
+                      allBrandsSelected ? "bg-white border-neutral-900 text-neutral-900 font-semibold shadow-2xs" : "bg-white border-neutral-200 text-neutral-600 hover:border-neutral-300"
+                    }`}
+                  >
+                    <Checkbox
+                      id="check-all-brands"
+                      checked={allBrandsSelected}
+                      onCheckedChange={(c) => {
+                        const val = Boolean(c)
+                        setAllBrandsSelected(val)
+                        if (val) setSelectedBrands([])
+                      }}
+                    />
+                    <span className="truncate">All Brands</span>
+                  </div>
+
+                  {availableBrands.map((brand) => {
+                    const isChecked = allBrandsSelected || selectedBrands.includes(brand)
+                    return (
+                      <div
+                        key={brand}
+                        onClick={() => toggleBrand(brand)}
+                        className={`flex items-center gap-2 px-2.5 py-2 rounded-lg border text-xs cursor-pointer transition-colors select-none ${
+                          isChecked ? "bg-white border-neutral-900 text-neutral-900 font-semibold shadow-2xs" : "bg-white border-neutral-200 text-neutral-600 hover:border-neutral-300"
+                        }`}
+                      >
+                        <Checkbox
+                          id={`brand-${brand}`}
+                          checked={isChecked}
+                          onCheckedChange={() => toggleBrand(brand)}
+                        />
+                        <span className="truncate">{brand}</span>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+
+              <div className="space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold text-neutral-800 uppercase tracking-wider flex items-center gap-1.5">
+                    <Bike className="size-3.5 text-neutral-500" />
+                    4. Models Filter
+                  </span>
+                  <div className="flex items-center gap-2 text-xs">
+                    <span className="text-[11px] text-neutral-500">
+                      {allModelsSelected ? "All" : selectedModels.length} of {availableModels.length}
+                    </span>
+                    <span className="text-neutral-300">|</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAllModelsSelected(true)
+                        setSelectedModels([])
+                      }}
+                      className={`cursor-pointer hover:underline ${allModelsSelected ? "font-bold text-neutral-900" : "text-neutral-500"}`}
+                    >
+                      All
+                    </button>
+                    <span className="text-neutral-300">|</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAllModelsSelected(false)
+                        setSelectedModels([])
+                      }}
+                      className="cursor-pointer text-neutral-500 hover:text-neutral-900"
+                    >
+                      Clear
+                    </button>
+                  </div>
+                </div>
+
+                <div className="relative">
+                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3 text-neutral-400" />
+                  <Input
+                    placeholder="Search models..."
+                    value={modelSearch}
+                    onChange={(e) => setModelSearch(e.target.value)}
+                    className="h-8 pl-7 text-xs bg-white border-neutral-200"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 p-2.5 rounded-xl border border-neutral-200 bg-neutral-50/50 max-h-48 overflow-y-auto">
+                  {!modelSearch && (
+                    <div
+                      onClick={() => {
+                        const next = !allModelsSelected
+                        setAllModelsSelected(next)
+                        if (next) setSelectedModels([])
+                      }}
+                      className={`flex items-center gap-2 px-2.5 py-2 rounded-lg border text-xs font-medium cursor-pointer transition-colors select-none ${
+                        allModelsSelected ? "bg-white border-neutral-900 text-neutral-900 font-semibold shadow-2xs" : "bg-white border-neutral-200 text-neutral-600 hover:border-neutral-300"
+                      }`}
+                    >
+                      <Checkbox
+                        id="check-all-models"
+                        checked={allModelsSelected}
+                        onCheckedChange={(c) => {
+                          const val = Boolean(c)
+                          setAllModelsSelected(val)
+                          if (val) setSelectedModels([])
+                        }}
+                      />
+                      <span className="truncate">All Models</span>
+                    </div>
+                  )}
+
+                  {filteredAvailableModels.map((model) => {
+                    const isChecked = allModelsSelected || selectedModels.includes(model)
+                    return (
+                      <div
+                        key={model}
+                        onClick={() => toggleModel(model)}
+                        className={`flex items-center gap-2 px-2.5 py-2 rounded-lg border text-xs cursor-pointer transition-colors select-none ${
+                          isChecked ? "bg-white border-neutral-900 text-neutral-900 font-semibold shadow-2xs" : "bg-white border-neutral-200 text-neutral-600 hover:border-neutral-300"
+                        }`}
+                      >
+                        <Checkbox
+                          id={`model-${model}`}
+                          checked={isChecked}
+                          onCheckedChange={() => toggleModel(model)}
+                        />
+                        <span className="font-mono text-[11px] truncate">{model}</span>
+                      </div>
+                    )
+                  })}
+
+                  {filteredAvailableModels.length === 0 && (
+                    <div className="col-span-full py-4 text-center text-xs text-neutral-400">
+                      No models match &quot;{modelSearch}&quot;
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
           <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
             <div className="p-4 rounded-2xl border border-neutral-200 bg-white">
               <span className="text-xs text-neutral-500 font-medium">Total Sheet Items</span>
@@ -326,9 +841,9 @@ export function AdminExcelSyncSection() {
                 <span className="text-xs text-amber-700 font-semibold">Price Changes</span>
                 <span className="size-2 rounded-full bg-amber-500" />
               </div>
-              <p className="text-2xl font-bold text-amber-900 mt-1">{sheetUpdates.length}</p>
+              <p className="text-2xl font-bold text-amber-900 mt-1">{filteredUpdates.length}</p>
               <span className="text-[11px] text-amber-700">
-                {sheetUpdates.filter((u) => u.selected).length} selected to update
+                {!updateExistingPrices ? "Skipped (Disabled in options)" : `${activeSelectedUpdatesCount} selected to update`}
               </span>
             </div>
 
@@ -342,9 +857,9 @@ export function AdminExcelSyncSection() {
                 <span className="text-xs text-emerald-700 font-semibold">New Products</span>
                 <span className="size-2 rounded-full bg-emerald-500" />
               </div>
-              <p className="text-2xl font-bold text-emerald-900 mt-1">{sheetNew.length}</p>
+              <p className="text-2xl font-bold text-emerald-900 mt-1">{filteredNew.length}</p>
               <span className="text-[11px] text-emerald-700">
-                {sheetNew.filter((n) => n.selected).length} selected to import
+                {!addNewProducts ? "Skipped (Disabled in options)" : `${activeSelectedNewCount} selected to import`}
               </span>
             </div>
 
@@ -358,7 +873,7 @@ export function AdminExcelSyncSection() {
                 <span className="text-xs text-neutral-600 font-medium">Unchanged</span>
                 <span className="size-2 rounded-full bg-neutral-400" />
               </div>
-              <p className="text-2xl font-bold text-neutral-900 mt-1">{sheetUnchanged.length}</p>
+              <p className="text-2xl font-bold text-neutral-900 mt-1">{filteredUnchanged.length}</p>
               <span className="text-[11px] text-neutral-500">Same price on website</span>
             </div>
           </div>
@@ -373,7 +888,7 @@ export function AdminExcelSyncSection() {
                   activeTab === "updates" ? "bg-amber-600 hover:bg-amber-700 text-white" : "text-neutral-600"
                 }`}
               >
-                Price Updates ({sheetUpdates.length})
+                Price Updates ({filteredUpdates.length})
               </Button>
               <Button
                 size="sm"
@@ -383,7 +898,7 @@ export function AdminExcelSyncSection() {
                   activeTab === "new" ? "bg-emerald-600 hover:bg-emerald-700 text-white" : "text-neutral-600"
                 }`}
               >
-                New Products ({sheetNew.length})
+                New Products ({filteredNew.length})
               </Button>
               <Button
                 size="sm"
@@ -393,7 +908,7 @@ export function AdminExcelSyncSection() {
                   activeTab === "unchanged" ? "bg-neutral-900 hover:bg-neutral-800 text-white" : "text-neutral-600"
                 }`}
               >
-                Unchanged ({sheetUnchanged.length})
+                Unchanged ({filteredUnchanged.length})
               </Button>
             </div>
 
@@ -448,7 +963,7 @@ export function AdminExcelSyncSection() {
 
               <Button
                 size="sm"
-                disabled={isApplying || (priceUpdates.filter((u) => u.selected).length === 0 && newProducts.filter((n) => n.selected).length === 0)}
+                disabled={isApplying || totalSelectedCount === 0}
                 onClick={handleApplyChanges}
                 className="h-8 px-4 text-xs font-semibold bg-red-600 hover:bg-red-700 text-white cursor-pointer rounded-xl gap-1.5 shadow-xs"
               >
@@ -460,7 +975,7 @@ export function AdminExcelSyncSection() {
                 ) : (
                   <>
                     <CheckCircle2 className="size-3.5" />
-                    <span>Apply Selected ({priceUpdates.filter((u) => u.selected).length + newProducts.filter((n) => n.selected).length})</span>
+                    <span>Apply Selected ({totalSelectedCount})</span>
                   </>
                 )}
               </Button>
@@ -490,6 +1005,8 @@ export function AdminExcelSyncSection() {
                       <TableHead className="w-10"></TableHead>
                       <TableHead className="text-xs font-semibold">Product Name</TableHead>
                       <TableHead className="text-xs font-semibold">Code / Model</TableHead>
+                      <TableHead className="text-xs font-semibold">Brand</TableHead>
+                      <TableHead className="text-xs font-semibold">Type</TableHead>
                       <TableHead className="text-xs font-semibold">Current Price</TableHead>
                       <TableHead className="text-xs font-semibold">New Excel Price</TableHead>
                       <TableHead className="text-xs font-semibold">Change</TableHead>
@@ -499,8 +1016,8 @@ export function AdminExcelSyncSection() {
                   <TableBody>
                     {filteredUpdates.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={7} className="h-32 text-center text-xs text-neutral-500">
-                          No price updates match the current search.
+                        <TableCell colSpan={9} className="h-32 text-center text-xs text-neutral-500">
+                          No price updates match the current search or checked options.
                         </TableCell>
                       </TableRow>
                     ) : (
@@ -517,6 +1034,12 @@ export function AdminExcelSyncSection() {
                           </TableCell>
                           <TableCell className="font-mono text-[11px] text-neutral-500">
                             {item.itemCode || "—"} {item.model ? `• ${item.model}` : ""}
+                          </TableCell>
+                          <TableCell className="text-neutral-700 text-xs font-medium">
+                            {item.brand || "Crown"}
+                          </TableCell>
+                          <TableCell>
+                            {renderTypeBadge(item.type)}
                           </TableCell>
                           <TableCell className="text-neutral-500 line-through">
                             Rs. {item.oldPrice.toLocaleString()}
@@ -558,7 +1081,7 @@ export function AdminExcelSyncSection() {
                     Bulk Settings for Selected New Products
                   </h4>
                   <p className="text-[11px] text-emerald-700 mt-0.5">
-                    Apply a common brand, category, or bike model to all checked new items before importing.
+                    Apply a common brand, category, bike model, or type (wholesale/retail) to all checked new items before importing.
                   </p>
                 </div>
 
@@ -745,7 +1268,7 @@ export function AdminExcelSyncSection() {
             <div className="border border-neutral-200 rounded-2xl bg-white overflow-hidden shadow-xs">
               <div className="p-3.5 bg-neutral-50 border-b border-neutral-200 flex items-center justify-between">
                 <span className="text-xs font-semibold text-neutral-700">
-                  Products with Matching Prices ({unchanged.length})
+                  Products with Matching Prices ({filteredUnchanged.length})
                 </span>
                 <span className="text-[11px] text-neutral-400">No price updates needed for these parts</span>
               </div>
@@ -756,6 +1279,8 @@ export function AdminExcelSyncSection() {
                     <TableRow className="text-xs">
                       <TableHead className="text-xs font-semibold">Product Name</TableHead>
                       <TableHead className="text-xs font-semibold">Code / Model</TableHead>
+                      <TableHead className="text-xs font-semibold">Brand</TableHead>
+                      <TableHead className="text-xs font-semibold">Type</TableHead>
                       <TableHead className="text-xs font-semibold">Website Price</TableHead>
                       <TableHead className="text-xs font-semibold">Excel Price</TableHead>
                       <TableHead className="text-xs font-semibold">Status</TableHead>
@@ -764,8 +1289,8 @@ export function AdminExcelSyncSection() {
                   <TableBody>
                     {filteredUnchanged.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={5} className="h-32 text-center text-xs text-neutral-500">
-                          No unchanged items match your search.
+                        <TableCell colSpan={7} className="h-32 text-center text-xs text-neutral-500">
+                          No unchanged items match your search or filter.
                         </TableCell>
                       </TableRow>
                     ) : (
@@ -776,6 +1301,12 @@ export function AdminExcelSyncSection() {
                           </TableCell>
                           <TableCell className="font-mono text-[11px] text-neutral-500">
                             {item.itemCode || "—"} {item.model ? `• ${item.model}` : ""}
+                          </TableCell>
+                          <TableCell className="text-neutral-700 text-xs font-medium">
+                            {item.brand || "Crown"}
+                          </TableCell>
+                          <TableCell>
+                            {renderTypeBadge(item.type)}
                           </TableCell>
                           <TableCell className="font-bold text-neutral-900">
                             Rs. {item.oldPrice.toLocaleString()}

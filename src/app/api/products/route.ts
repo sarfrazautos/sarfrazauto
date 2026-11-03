@@ -2,7 +2,7 @@ import { NextResponse } from "next/server"
 import { db } from "@/lib/db"
 import { products } from "@/db/schema/products"
 import { schemes } from "@/db/schema/schemes"
-import { eq, or, ilike, and, desc, count } from "drizzle-orm"
+import { eq, or, ilike, and, desc, count, ne } from "drizzle-orm"
 import { createSlug } from "@/lib/slug"
 import { auth } from "@/lib/auth"
 import { normalizeCategory } from "@/lib/category-mapper"
@@ -18,8 +18,13 @@ export async function GET(req: Request) {
     const brand = searchParams.get("brand")?.trim() || ""
     const bike = searchParams.get("bike")?.trim() || searchParams.get("model")?.trim() || searchParams.get("compatibleBike")?.trim() || ""
     const exact = searchParams.get("exact") === "true" || searchParams.get("exactType") === "true"
+    const includeHidden = searchParams.get("includeHidden") === "true"
 
     const conditions = []
+
+    if (!includeHidden) {
+      conditions.push(ne(products.stockStatus, "hidden"))
+    }
 
     if (search) {
       const searchTerms = [search]
