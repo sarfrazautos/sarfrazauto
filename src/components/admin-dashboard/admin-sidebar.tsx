@@ -216,6 +216,20 @@ export function AdminSidebar({
                               <span>Bulk Manage &amp; Hide</span>
                             </SidebarMenuSubButton>
                           </SidebarMenuSubItem>
+                          <SidebarMenuSubItem>
+                            <SidebarMenuSubButton
+                              isActive={pathname === "/admin/products/price-comparison"}
+                              render={<Link href="/admin/products/price-comparison" />}
+                              className={cn(
+                                "rounded-lg text-xs px-2.5 py-1.5 h-8 transition-colors w-full",
+                                pathname === "/admin/products/price-comparison"
+                                  ? "bg-neutral-900 font-medium text-white hover:bg-neutral-900 hover:text-white"
+                                  : "text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900"
+                              )}
+                            >
+                              <span>Price Comparison</span>
+                            </SidebarMenuSubButton>
+                          </SidebarMenuSubItem>
                         </SidebarMenuSub>
                       </CollapsibleContent>
                     </SidebarMenuItem>
