@@ -57,6 +57,9 @@ export function PaymentHistorySection() {
         search: searchQuery,
         status: statusFilter === "All" ? "" : statusFilter.toLowerCase(),
       }),
+    staleTime: 5 * 60 * 1000,
+    gcTime: 15 * 60 * 1000,
+    placeholderData: (prev) => prev,
   })
 
   const payments: PaymentRecord[] = data?.payments || []

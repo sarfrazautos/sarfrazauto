@@ -16,6 +16,8 @@ import {
   TableRow,
 } from "@/components/ui/table"
 
+import { useWholesaleBulkOrders } from "@/lib/hooks/use-wholesale-portal"
+
 export interface BulkOrder {
   id: string
   date: string
@@ -25,75 +27,12 @@ export interface BulkOrder {
   status: "In Transit" | "Processing" | "Delivered"
 }
 
-const initialOrders: BulkOrder[] = [
-  {
-    id: "BO-9482",
-    date: "24 Sep 2026",
-    items: "Complete 70cc Cylinder Head Assembly",
-    cartonCount: 24,
-    totalAmount: 620000,
-    status: "In Transit",
-  },
-  {
-    id: "BO-9420",
-    date: "22 Sep 2026",
-    items: "Crown Heavy Duty Clutch Plate Set (5 Pcs)",
-    cartonCount: 40,
-    totalAmount: 445000,
-    status: "In Transit",
-  },
-  {
-    id: "BO-9391",
-    date: "21 Sep 2026",
-    items: "125cc Piston & Ring Kits (Standard)",
-    cartonCount: 60,
-    totalAmount: 890000,
-    status: "Processing",
-  },
-  {
-    id: "BO-9350",
-    date: "18 Sep 2026",
-    items: "Heavy Duty Alloy Wheel Rim Hub Assembly",
-    cartonCount: 18,
-    totalAmount: 385000,
-    status: "Delivered",
-  },
-  {
-    id: "BO-9304",
-    date: "15 Sep 2026",
-    items: "CD70 Performance Crankshaft Assembly",
-    cartonCount: 32,
-    totalAmount: 768000,
-    status: "Delivered",
-  },
-]
-
 export function BulkOrdersTable() {
-  const [orders, setOrders] = useState<BulkOrder[]>(initialOrders)
-  const [isLoading, setIsLoading] = useState(true)
+  const { data, isLoading } = useWholesaleBulkOrders()
+  const orders: BulkOrder[] = data?.bulkOrders || []
   const [searchQuery, setSearchQuery] = useState("")
   const [statusFilter, setStatusFilter] = useState<string>("All")
   const [selectedOrder, setSelectedOrder] = useState<BulkOrder | null>(null)
-
-  useEffect(() => {
-    let isMounted = true
-    async function loadBulkOrders() {
-      try {
-        const res = await fetch("/api/customer/bulk-orders")
-        const data = await res.json()
-        if (data?.success && Array.isArray(data?.bulkOrders) && isMounted) {
-          setOrders(data.bulkOrders)
-        }
-      } catch (err) {
-      } finally {
-        if (isMounted) setIsLoading(false)
-      }
-    }
-    loadBulkOrders()
-    return () => {
-      isMounted = false
-    }
-  }, [])
 
   const filteredOrders = orders.filter((order) => {
     const matchesSearch =

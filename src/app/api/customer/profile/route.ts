@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server"
 import { db } from "@/lib/db"
 import { customerPortalProfiles } from "@/db/schema/customer-portal"
-import { user } from "@/db/schema/auth"
 import { auth } from "@/lib/auth"
 import { eq, or } from "drizzle-orm"
 
@@ -15,26 +14,33 @@ export async function GET(req: Request) {
     const email = session?.user?.email?.trim().toLowerCase()
     const userId = session?.user?.id
 
-    let profile = null
-
-    if (userId || email) {
-      const conditions = []
-      if (userId) conditions.push(eq(customerPortalProfiles.userId, userId))
-      if (email) conditions.push(eq(customerPortalProfiles.email, email))
-
-      const [found] = await db
-        .select()
-        .from(customerPortalProfiles)
-        .where(conditions.length > 1 ? or(...conditions) : conditions[0])
-        .limit(1)
-
-      profile = found
+    if (!userId && !email) {
+      return NextResponse.json({
+        success: true,
+        profile: {
+          businessName: "",
+          contactPerson: "",
+          email: "",
+          phone: "",
+          shopAddress: "",
+          preferredCity: "",
+          creditLimit: 0,
+          discountPercentage: 0,
+          totalPurchases: 0,
+          totalMoneySpent: 0,
+        },
+      })
     }
 
-    if (!profile) {
-      const [first] = await db.select().from(customerPortalProfiles).limit(1)
-      profile = first
-    }
+    const conditions = []
+    if (userId) conditions.push(eq(customerPortalProfiles.userId, userId))
+    if (email) conditions.push(eq(customerPortalProfiles.email, email))
+
+    const [profile] = await db
+      .select()
+      .from(customerPortalProfiles)
+      .where(conditions.length > 1 ? or(...conditions) : conditions[0])
+      .limit(1)
 
     if (profile) {
       return NextResponse.json({ success: true, profile })
@@ -42,12 +48,16 @@ export async function GET(req: Request) {
 
     const defaultValues = {
       userId: userId || null,
-      businessName: (session?.user as any)?.shopName || session?.user?.name || "Tariq Auto Traders",
-      contactPerson: session?.user?.name || "Muhammad Tariq",
-      email: email || "dealer@sarfrazautos.com",
-      phone: (session?.user as any)?.phone || "+92 300 1234567",
-      shopAddress: (session?.user as any)?.deliveryAddress || "Shop #14, Bilal Auto Market, Montgomery Road, Lahore",
-      preferredCity: (session?.user as any)?.city || "Lahore",
+      businessName: (session?.user as any)?.shopName || session?.user?.name || "",
+      contactPerson: session?.user?.name || "",
+      email: email || "",
+      phone: (session?.user as any)?.phone || "",
+      shopAddress: (session?.user as any)?.deliveryAddress || "",
+      preferredCity: (session?.user as any)?.city || "",
+      creditLimit: 0,
+      discountPercentage: 0,
+      totalPurchases: 0,
+      totalMoneySpent: 0,
     }
 
     const [created] = await db
@@ -74,35 +84,32 @@ export async function PUT(req: Request) {
     const email = session?.user?.email?.trim().toLowerCase()
     const userId = session?.user?.id
 
-    let existing = null
-    if (userId || email) {
-      const conditions = []
-      if (userId) conditions.push(eq(customerPortalProfiles.userId, userId))
-      if (email) conditions.push(eq(customerPortalProfiles.email, email))
-
-      const [found] = await db
-        .select()
-        .from(customerPortalProfiles)
-        .where(conditions.length > 1 ? or(...conditions) : conditions[0])
-        .limit(1)
-
-      existing = found
+    if (!userId && !email) {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized: Please log in to update your profile" },
+        { status: 401 }
+      )
     }
 
-    if (!existing) {
-      const [first] = await db.select().from(customerPortalProfiles).limit(1)
-      existing = first
-    }
+    const conditions = []
+    if (userId) conditions.push(eq(customerPortalProfiles.userId, userId))
+    if (email) conditions.push(eq(customerPortalProfiles.email, email))
+
+    const [existing] = await db
+      .select()
+      .from(customerPortalProfiles)
+      .where(conditions.length > 1 ? or(...conditions) : conditions[0])
+      .limit(1)
 
     const body = await req.json()
     const values = {
       userId: userId || existing?.userId || null,
-      businessName: body.businessName?.trim() || existing?.businessName || "Tariq Auto Traders",
-      contactPerson: body.contactPerson?.trim() || existing?.contactPerson || "Muhammad Tariq",
-      email: existing ? existing.email : (email || body.email?.trim() || "dealer@sarfrazautos.com"),
-      phone: body.phone?.trim() || existing?.phone || "+92 300 1234567",
+      businessName: body.businessName?.trim() || existing?.businessName || (session?.user as any)?.shopName || session?.user?.name || "",
+      contactPerson: body.contactPerson?.trim() || existing?.contactPerson || session?.user?.name || "",
+      email: email || existing?.email || body.email?.trim() || "",
+      phone: body.phone?.trim() || existing?.phone || (session?.user as any)?.phone || "",
       shopAddress: body.shopAddress?.trim() || existing?.shopAddress || "",
-      preferredCity: body.preferredCity?.trim() || existing?.preferredCity || "Lahore",
+      preferredCity: body.preferredCity?.trim() || existing?.preferredCity || "",
       updatedAt: new Date(),
     }
 
@@ -118,7 +125,13 @@ export async function PUT(req: Request) {
 
     const [created] = await db
       .insert(customerPortalProfiles)
-      .values(values)
+      .values({
+        ...values,
+        creditLimit: 0,
+        discountPercentage: 0,
+        totalPurchases: 0,
+        totalMoneySpent: 0,
+      })
       .returning()
 
     return NextResponse.json({ success: true, profile: created })

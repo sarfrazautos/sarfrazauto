@@ -108,6 +108,7 @@ export function PaymentSection({ className = "" }: { className?: string }) {
       await createOrder({
         orderNumber: orderId,
         customerName,
+        customerEmail: info.email?.trim() || null,
         customerPhone: info.phone?.trim() || null,
         customerCity: info.city?.trim() || null,
         orderType: wholesaleSubtotal > 0 ? "wholesale" : "retail",

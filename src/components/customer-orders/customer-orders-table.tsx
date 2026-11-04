@@ -21,7 +21,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { AdminPagination } from "@/components/admin-dashboard/admin-pagination"
-import { getOrders } from "@/lib/api/orders"
+import { getCustomerOrders } from "@/lib/api/wholesale-portal"
 
 export function CustomerOrdersTable() {
   const [currentPage, setCurrentPage] = useState(1)
@@ -42,12 +42,15 @@ export function CustomerOrdersTable() {
       },
     ],
     queryFn: () =>
-      getOrders({
+      getCustomerOrders({
         page: currentPage,
         limit,
         search: searchQuery,
         status: statusFilter === "All" ? "" : statusFilter.toLowerCase(),
       }),
+    staleTime: 5 * 60 * 1000,
+    gcTime: 15 * 60 * 1000,
+    placeholderData: (prev) => prev,
   })
 
   const orders = data?.orders || []

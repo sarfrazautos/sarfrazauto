@@ -1,10 +1,16 @@
 import { NextResponse } from "next/server"
 import { db } from "@/lib/db"
 import { orders } from "@/db/schema/orders"
+import { auth } from "@/lib/auth"
 import { sendOrderWhatsAppAlerts } from "@/lib/whatsapp"
 
 export async function POST(req: Request) {
   try {
+    let session = null
+    try {
+      session = await auth.api.getSession({ headers: req.headers })
+    } catch {}
+
     const body = await req.json()
     const { customerName, customerPhone, customerCity, items, notes } = body
 
@@ -18,6 +24,9 @@ export async function POST(req: Request) {
     const randomSuffix = Math.floor(1000 + Math.random() * 9000)
     const orderNumber = `AI-ORD-${new Date().getFullYear()}-${randomSuffix}`
 
+    const userId = session?.user?.id || null
+    const customerEmail = session?.user?.email ? session.user.email.trim().toLowerCase() : null
+
     const totalAmount = items.reduce(
       (sum: number, item: any) => sum + (Number(item.price) || 0) * (Number(item.quantity) || 1),
       0
@@ -27,6 +36,8 @@ export async function POST(req: Request) {
       .insert(orders)
       .values({
         orderNumber,
+        userId,
+        customerEmail,
         customerName: customerName?.trim() || "AI Voice Customer",
         customerPhone: customerPhone.trim(),
         customerCity: customerCity?.trim() || "Karachi",

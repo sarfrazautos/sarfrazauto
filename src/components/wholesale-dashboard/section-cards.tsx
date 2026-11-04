@@ -1,6 +1,6 @@
 "use client"
 
-import { useQuery } from "@tanstack/react-query"
+import { useWholesaleDashboard } from "@/lib/hooks/use-wholesale-portal"
 import { Badge } from "@/components/ui/badge"
 import {
   Card,
@@ -14,17 +14,7 @@ import { ShoppingBag, Clock } from "lucide-react"
 import { PiCoinsLight } from "react-icons/pi"
 
 export function SectionCards() {
-  const { data, isLoading } = useQuery({
-    queryKey: ["customer-dashboard-stats"],
-    queryFn: async () => {
-      const res = await fetch("/api/customer/dashboard")
-      const json = await res.json()
-      if (!res.ok || !json.success) {
-        throw new Error(json.error || "Failed to fetch stats")
-      }
-      return json
-    },
-  })
+  const { data, isLoading } = useWholesaleDashboard()
 
   const stats = data?.stats
 
@@ -45,7 +35,7 @@ export function SectionCards() {
           </div>
           <CardAction>
             <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200 text-xs">
-              {stats?.monthlyIncrease || "+14.8% This Month"}
+              {stats?.monthlyIncrease || "0% This Month"}
             </Badge>
           </CardAction>
         </CardHeader>

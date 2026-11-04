@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { useQuery } from "@tanstack/react-query"
+import { useWholesaleDashboard } from "@/lib/hooks/use-wholesale-portal"
 import { PackagePlus, TrendingUp, Boxes, Clock } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardAction, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -10,17 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { PiCoinsLight } from "react-icons/pi"
 
 export function CustomerOrdersHeader() {
-  const { data, isLoading } = useQuery({
-    queryKey: ["customer-dashboard-stats"],
-    queryFn: async () => {
-      const res = await fetch("/api/customer/dashboard")
-      const json = await res.json()
-      if (!res.ok || !json.success) {
-        throw new Error(json.error || "Failed to fetch dashboard stats")
-      }
-      return json
-    },
-  })
+  const { data, isLoading } = useWholesaleDashboard()
 
   const stats = data?.stats
 

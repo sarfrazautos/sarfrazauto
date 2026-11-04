@@ -73,8 +73,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   })
 
   const user = {
-    name: profile?.businessName || "Tariq Auto Traders",
-    email: profile?.email || "dealer@sarfrazautos.com",
+    name: profile?.businessName || profile?.contactPerson || "Customer",
+    email: profile?.email || "",
     avatar: "/icon.png",
   }
 

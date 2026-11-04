@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { db } from "@/lib/db"
 import { orders } from "@/db/schema/orders"
+import { auth } from "@/lib/auth"
 import { eq, ilike, and, or, inArray, desc, count } from "drizzle-orm"
 import { sendOrderWhatsAppAlerts } from "@/lib/whatsapp"
 
@@ -95,6 +96,11 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
+    let session = null
+    try {
+      session = await auth.api.getSession({ headers: req.headers })
+    } catch {}
+
     const body = await req.json()
 
     const customerName = (body.customerName && body.customerName.trim())
@@ -105,10 +111,15 @@ export async function POST(req: Request) {
     const orderNumber =
       body.orderNumber || `ORD-${new Date().getFullYear()}-${randomSuffix}`
 
+    const userId = body.userId || session?.user?.id || null
+    const customerEmail = (body.customerEmail || body.email || session?.user?.email || "")?.trim().toLowerCase() || null
+
     const [created] = await db
       .insert(orders)
       .values({
         orderNumber,
+        userId,
+        customerEmail,
         customerName,
         customerPhone: body.customerPhone ? body.customerPhone.trim() : null,
         customerCity: body.customerCity ? body.customerCity.trim() : null,

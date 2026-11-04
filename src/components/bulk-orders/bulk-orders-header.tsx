@@ -1,13 +1,27 @@
 "use client"
 
 import Link from "next/link"
-import { PackagePlus, TrendingUp, Boxes, Clock, ShieldCheck } from "lucide-react"
+import { useWholesaleBulkOrders } from "@/lib/hooks/use-wholesale-portal"
+import { PackagePlus, TrendingUp, Boxes, Clock } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardAction, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { Skeleton } from "@/components/ui/skeleton"
 import { PiCoinsLight } from "react-icons/pi"
 
 export function BulkOrdersHeader() {
+  const { data, isLoading } = useWholesaleBulkOrders()
+
+  const orders: any[] = data?.bulkOrders || []
+  const totalCount = data?.totalCount || 0
+  const totalSpent = orders.reduce((sum, o) => sum + (Number(o.totalAmount) || 0), 0)
+  const processingCount = orders.filter((o) => o.status === "Processing" || o.status === "In Transit").length
+
+  const totalSpentDisplay =
+    totalSpent >= 1000000
+      ? `Rs. ${(totalSpent / 1000000).toFixed(2)}M`
+      : `Rs. ${totalSpent.toLocaleString()}`
+
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -32,13 +46,19 @@ export function BulkOrdersHeader() {
           <CardHeader>
             <PiCoinsLight className="size-10 opacity-80" />
             <CardDescription className="pt-5">Total Money Spent</CardDescription>
-            <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-              Rs. 3.11M
-            </CardTitle>
+            <div className="mt-1">
+              {isLoading ? (
+                <Skeleton className="h-8 w-32 rounded-lg" />
+              ) : (
+                <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
+                  {totalSpentDisplay}
+                </CardTitle>
+              )}
+            </div>
             <CardAction>
               <Badge variant="outline" className="flex items-center gap-1 text-xs">
                 <TrendingUp className="size-3 text-emerald-600" />
-                <span>+14.2%</span>
+                <span>{totalSpent > 0 ? "Active Purchases" : "0% This Month"}</span>
               </Badge>
             </CardAction>
           </CardHeader>
@@ -48,12 +68,18 @@ export function BulkOrdersHeader() {
           <CardHeader>
             <Boxes className="size-8 text-neutral-700 stroke-[1.5]" />
             <CardDescription className="pt-7">Total Orders</CardDescription>
-            <CardTitle className="text-2xl font-semibold @[250px]/card:text-3xl">
-              24
-            </CardTitle>
+            <div className="mt-1">
+              {isLoading ? (
+                <Skeleton className="h-8 w-24 rounded-lg" />
+              ) : (
+                <CardTitle className="text-2xl font-semibold @[250px]/card:text-3xl">
+                  {totalCount}
+                </CardTitle>
+              )}
+            </div>
             <CardAction>
               <Badge variant="outline" className="text-xs">
-                24 Orders
+                {totalCount} Orders
               </Badge>
             </CardAction>
           </CardHeader>
@@ -63,9 +89,15 @@ export function BulkOrdersHeader() {
           <CardHeader>
             <Clock className="size-8 text-neutral-700 stroke-[1.5]" />
             <CardDescription className="pt-7">Orders In Processing</CardDescription>
-            <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-              2 Orders
-            </CardTitle>
+            <div className="mt-1">
+              {isLoading ? (
+                <Skeleton className="h-8 w-24 rounded-lg" />
+              ) : (
+                <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
+                  {processingCount} Orders
+                </CardTitle>
+              )}
+            </div>
             <CardAction>
               <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200 text-xs">
                 Processing

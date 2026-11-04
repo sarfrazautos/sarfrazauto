@@ -1,20 +1,82 @@
 import { NextResponse } from "next/server"
 import { db } from "@/lib/db"
 import { orders } from "@/db/schema/orders"
+import { customerPortalProfiles } from "@/db/schema/customer-portal"
+import { auth } from "@/lib/auth"
 import { eq, ilike, and, or, desc, count } from "drizzle-orm"
 
 export async function GET(req: Request) {
   try {
+    let session = null
+    try {
+      session = await auth.api.getSession({ headers: req.headers })
+    } catch {}
+
+    const email = session?.user?.email?.trim().toLowerCase()
+    const userId = session?.user?.id
+    const sessionPhone = (session?.user as any)?.phone?.trim()
+
     const { searchParams } = new URL(req.url)
     const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10))
     const limit = Math.max(1, parseInt(searchParams.get("limit") || "20", 10))
     const search = searchParams.get("search")?.trim() || ""
     const status = searchParams.get("status")?.trim().toLowerCase() || ""
 
-    const conditions = []
+    if (!userId && !email) {
+      return NextResponse.json({
+        success: true,
+        orders: [],
+        pagination: {
+          page: 1,
+          limit,
+          total: 0,
+          totalPages: 1,
+        },
+      })
+    }
+
+    let profilePhone = ""
+    if (userId || email) {
+      const profConditions = []
+      if (userId) profConditions.push(eq(customerPortalProfiles.userId, userId))
+      if (email) profConditions.push(eq(customerPortalProfiles.email, email))
+      const [prof] = await db
+        .select()
+        .from(customerPortalProfiles)
+        .where(profConditions.length > 1 ? or(...profConditions) : profConditions[0])
+        .limit(1)
+      if (prof?.phone) profilePhone = prof.phone.trim()
+    }
+
+    const userScopeConditions = []
+    if (userId) userScopeConditions.push(eq(orders.userId, userId))
+    if (email) userScopeConditions.push(eq(orders.customerEmail, email))
+
+    const rawPhone = (sessionPhone || profilePhone || "").replace(/[^0-9]/g, "")
+    if (rawPhone && rawPhone.length >= 7) {
+      const phoneTail = rawPhone.slice(-7)
+      userScopeConditions.push(ilike(orders.customerPhone, `%${phoneTail}%`))
+    }
+
+    if (userScopeConditions.length === 0) {
+      return NextResponse.json({
+        success: true,
+        orders: [],
+        pagination: {
+          page: 1,
+          limit,
+          total: 0,
+          totalPages: 1,
+        },
+      })
+    }
+
+    const userWhere = userScopeConditions.length > 1 ? or(...userScopeConditions) : userScopeConditions[0]
+
+    const filterConditions = [userWhere]
 
     if (search) {
-      conditions.push(
+      filterConditions.push(
         or(
           ilike(orders.orderNumber, `%${search}%`),
           ilike(orders.customerName, `%${search}%`),
@@ -25,15 +87,15 @@ export async function GET(req: Request) {
     }
 
     if (status && status !== "all") {
-      conditions.push(ilike(orders.status, status))
+      filterConditions.push(ilike(orders.status, status))
     }
 
-    const whereClause = conditions.length > 0 ? and(...conditions) : undefined
+    const finalWhere = and(...filterConditions)
 
     const [totalRow] = await db
       .select({ count: count() })
       .from(orders)
-      .where(whereClause)
+      .where(finalWhere)
 
     const total = Number(totalRow?.count || 0)
     const totalPages = Math.max(1, Math.ceil(total / limit))
@@ -42,7 +104,7 @@ export async function GET(req: Request) {
     const dbOrders = await db
       .select()
       .from(orders)
-      .where(whereClause)
+      .where(finalWhere)
       .orderBy(desc(orders.createdAt))
       .limit(limit)
       .offset(offset)
@@ -105,6 +167,11 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
+    let session = null
+    try {
+      session = await auth.api.getSession({ headers: req.headers })
+    } catch {}
+
     const body = await req.json()
 
     if (!body.customerName) {
@@ -117,10 +184,15 @@ export async function POST(req: Request) {
     const randomSuffix = Math.floor(10000 + Math.random() * 90000)
     const orderNumber = body.orderNumber || `#SA-${randomSuffix}`
 
+    const userId = body.userId || session?.user?.id || null
+    const customerEmail = (body.customerEmail || body.email || session?.user?.email || "")?.trim().toLowerCase() || null
+
     const [created] = await db
       .insert(orders)
       .values({
         orderNumber,
+        userId,
+        customerEmail,
         customerName: body.customerName.trim(),
         customerPhone: body.customerPhone ? body.customerPhone.trim() : null,
         customerCity: body.customerCity ? body.customerCity.trim() : "Karachi",

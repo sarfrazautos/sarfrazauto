@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { useQuery } from "@tanstack/react-query"
+import { useWholesaleDashboard } from "@/lib/hooks/use-wholesale-portal"
 import { Label, Pie, PieChart } from "recharts"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -20,24 +20,14 @@ const chartConfig = {
 } satisfies ChartConfig
 
 export function CustomerCategoryChart() {
-  const { data, isLoading } = useQuery({
-    queryKey: ["customer-dashboard-stats"],
-    queryFn: async () => {
-      const res = await fetch("/api/customer/dashboard")
-      const json = await res.json()
-      if (!res.ok || !json.success) {
-        throw new Error(json.error || "Failed to fetch dashboard data")
-      }
-      return json
-    },
-  })
+  const { data, isLoading } = useWholesaleDashboard()
 
   const charts = data?.charts
   const categoryBreakdown = charts?.categoryBreakdown || [
-    { category: "Engine & Cylinder", percentage: 40, amount: "Rs. 0", fill: "#dc2626" },
-    { category: "Clutch & Transmission", percentage: 30, amount: "Rs. 0", fill: "#ea580c" },
-    { category: "Wheel & Brakes", percentage: 15, amount: "Rs. 0", fill: "#eab308" },
-    { category: "Electrical & Accessories", percentage: 15, amount: "Rs. 0", fill: "#2563eb" },
+    { category: "Engine & Cylinder", percentage: 0, amount: "Rs. 0", fill: "#dc2626" },
+    { category: "Clutch & Transmission", percentage: 0, amount: "Rs. 0", fill: "#ea580c" },
+    { category: "Wheel & Brakes", percentage: 0, amount: "Rs. 0", fill: "#eab308" },
+    { category: "Electrical & Accessories", percentage: 0, amount: "Rs. 0", fill: "#2563eb" },
   ]
   const totalSpentDisplay = charts?.totalSpentDisplay || "Rs. 0"
 

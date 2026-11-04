@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/dialog"
 import { Loader2, Eye, Package } from "lucide-react"
 import { AdminPagination } from "@/components/admin-dashboard/admin-pagination"
-import { getCustomerOrders } from "@/lib/api/customer-orders"
+import { getCustomerOrders } from "@/lib/api/wholesale-portal"
 
 export function WholesaleOrderHistorySection() {
   const [searchQuery, setSearchQuery] = useState("")
@@ -48,6 +48,9 @@ export function WholesaleOrderHistorySection() {
         search: searchQuery,
         status: statusFilter === "All" ? "" : statusFilter.toLowerCase(),
       }),
+    staleTime: 5 * 60 * 1000,
+    gcTime: 15 * 60 * 1000,
+    placeholderData: (prev) => prev,
   })
 
   const orders: any[] = data?.orders || []

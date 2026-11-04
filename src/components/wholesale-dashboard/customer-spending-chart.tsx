@@ -1,6 +1,6 @@
 "use client"
 
-import { useQuery } from "@tanstack/react-query"
+import { useWholesaleDashboard } from "@/lib/hooks/use-wholesale-portal"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -20,17 +20,7 @@ const chartConfig = {
 } satisfies ChartConfig
 
 export function CustomerSpendingChart() {
-  const { data, isLoading } = useQuery({
-    queryKey: ["customer-dashboard-stats"],
-    queryFn: async () => {
-      const res = await fetch("/api/customer/dashboard")
-      const json = await res.json()
-      if (!res.ok || !json.success) {
-        throw new Error(json.error || "Failed to fetch dashboard data")
-      }
-      return json
-    },
-  })
+  const { data, isLoading } = useWholesaleDashboard()
 
   const charts = data?.charts
   const chartData = charts?.monthlySpending || []
@@ -58,7 +48,7 @@ export function CustomerSpendingChart() {
                   variant="outline"
                   className="bg-emerald-50 text-emerald-700 border-emerald-200 text-xs font-medium"
                 >
-                  +14.8% vs last year
+                  {charts?.growthDisplay || (charts?.hasData ? "+100% Active" : "0% this year")}
                 </Badge>
                 <span className="text-xs text-neutral-500 hidden sm:inline">
                   cumulative purchases
