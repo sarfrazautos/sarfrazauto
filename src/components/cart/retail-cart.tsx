@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import {
+  Boxes,
   Check,
   ChevronRight,
   Headphones,
@@ -11,6 +12,7 @@ import {
   Plus,
   RotateCcw,
   ShieldCheck,
+  ShoppingBag,
   Tag,
   Truck,
   X,
@@ -20,8 +22,16 @@ import { cn } from "@/lib/utils";
 import { useCart } from "@/lib/store/cart-store";
 import { useActiveOffer } from "@/lib/hooks/use-active-offer";
 
-export function RetailCart({ className = "" }: { className?: string }) {
-  const { retailItems, retailCount, updateQuantity, removeItem } = useCart();
+export function RetailCart({
+  className = "",
+  activeTab = "retail",
+  onTabChange,
+}: {
+  className?: string;
+  activeTab?: "retail" | "wholesale";
+  onTabChange?: (tab: "retail" | "wholesale") => void;
+}) {
+  const { retailItems, retailCount, wholesaleCount, updateQuantity, removeItem } = useCart();
   const [couponCode, setCouponCode] = useState("");
   const [couponApplied, setCouponApplied] = useState(false);
   const [couponError, setCouponError] = useState("");
@@ -70,6 +80,56 @@ export function RetailCart({ className = "" }: { className?: string }) {
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 pt-8 items-start w-full min-w-0">
         <div className="w-full min-w-0 lg:col-span-7 xl:col-span-8 space-y-4">
+          <div className="w-full p-1.5 rounded-2xl bg-neutral-100 border border-neutral-200/80 grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={() => onTabChange?.("retail")}
+              className={cn(
+                "flex items-center justify-center gap-2 py-3 px-3 sm:px-5 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer",
+                activeTab === "retail"
+                  ? "bg-white text-neutral-950 shadow-xs border border-neutral-200/60"
+                  : "text-neutral-500 hover:text-neutral-900 hover:bg-neutral-200/50"
+              )}
+            >
+              <ShoppingBag className="size-4 shrink-0" />
+              <span className="truncate">Retail Items</span>
+              <span
+                className={cn(
+                  "px-2 py-0.5 rounded-full text-[11px] sm:text-xs font-bold shrink-0",
+                  activeTab === "retail"
+                    ? "bg-red-50 text-red-600"
+                    : "bg-neutral-200/80 text-neutral-600"
+                )}
+              >
+                {retailCount}
+              </span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => onTabChange?.("wholesale")}
+              className={cn(
+                "flex items-center justify-center gap-2 py-3 px-3 sm:px-5 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer",
+                activeTab === "wholesale"
+                  ? "bg-white text-neutral-950 shadow-xs border border-neutral-200/60"
+                  : "text-neutral-500 hover:text-neutral-900 hover:bg-neutral-200/50"
+              )}
+            >
+              <Boxes className="size-4 shrink-0" />
+              <span className="truncate">Wholesale Items</span>
+              <span
+                className={cn(
+                  "px-2 py-0.5 rounded-full text-[11px] sm:text-xs font-bold shrink-0",
+                  activeTab === "wholesale"
+                    ? "bg-red-50 text-red-600"
+                    : "bg-neutral-200/80 text-neutral-600"
+                )}
+              >
+                {wholesaleCount}
+              </span>
+            </button>
+          </div>
+
           {retailItems.length === 0 ? (
             <div className="py-16 text-center border border-dashed border-neutral-200 rounded-2xl p-8">
               <p className="text-neutral-500 text-sm">Your retail shopping cart is empty.</p>

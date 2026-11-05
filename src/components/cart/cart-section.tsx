@@ -78,7 +78,11 @@ function CartContent({ className = "" }: { className?: string }) {
           </div>
         </div>
 
-        {activeTab === "retail" ? <RetailCart /> : <WholesaleCart />}
+        {activeTab === "retail" ? (
+          <RetailCart activeTab={activeTab} onTabChange={setActiveTab} />
+        ) : (
+          <WholesaleCart activeTab={activeTab} onTabChange={setActiveTab} />
+        )}
       </div>
     </section>
   );
