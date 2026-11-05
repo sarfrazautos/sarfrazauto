@@ -27,6 +27,12 @@ const BRAND_LOGOS: Record<string, string> = {
   "general-tyre": "/brands-logo/general-tyre.png",
   "general tire": "/brands-logo/general-tyre.png",
   "general-tire": "/brands-logo/general-tyre.png",
+  other: "/logo.png",
+  others: "/logo.png",
+  "other brand": "/logo.png",
+  "other brands": "/logo.png",
+  "sarfraz autos": "/logo.png",
+  sarfraz: "/logo.png",
 }
 
 export function parseBrands(brandStr?: string | null): string[] {
@@ -50,22 +56,22 @@ export function getBrandLogos(
     const logo = BRAND_LOGOS[key] || BRAND_LOGOS[key.replace(/\s+/g, "-")]
     if (logo && !seenLogos.has(logo)) {
       seenLogos.add(logo)
-      results.push({ name: b, logo })
+      results.push({ name: key.includes("other") ? "Sarfraz Autos" : b, logo })
     }
   }
 
   if (results.length === 0 && name) {
     const n = name.toLowerCase()
     for (const [key, logo] of Object.entries(BRAND_LOGOS)) {
-      if (n.includes(key) && !seenLogos.has(logo)) {
+      if (key !== "other" && key !== "others" && !key.includes("other") && n.includes(key) && !seenLogos.has(logo)) {
         seenLogos.add(logo)
         results.push({ name: key, logo })
       }
     }
   }
 
-  if (results.length === 0 && BRAND_LOGOS["crown"]) {
-    results.push({ name: "Crown", logo: BRAND_LOGOS["crown"] })
+  if (results.length === 0) {
+    results.push({ name: "Sarfraz Autos", logo: "/logo.png" })
   }
 
   return results
