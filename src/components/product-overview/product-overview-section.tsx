@@ -71,6 +71,29 @@ function ProductOverviewContent({
       ? Math.round(Number(product.price) * (1 - offerDiscountPercent / 100))
       : null;
 
+  const activeScheme = product?.scheme || (() => {
+    if (!product?.description) return null;
+    const match = product.description.match(/Buy\s+(\d+)\s+get\s+(\d+)\s+free/i);
+    if (!match) return null;
+    return {
+      id: "desc-scheme",
+      buyQty: parseInt(match[1], 10),
+      freeQty: parseInt(match[2], 10),
+      title: `Buy ${match[1]} + ${match[2]} Free`,
+    };
+  })();
+
+  const basePriceForScheme = isWholesale && isDealer && discountPercentage > 0
+    ? calculateDiscountedPrice(Number(product?.price) || 0)
+    : Number(product?.price) || 0;
+
+  const schemeBuyQty = Number(activeScheme?.buyQty || 0);
+  const schemeFreeQty = Number(activeScheme?.freeQty || 0);
+  const schemeTotalUnits = schemeBuyQty + schemeFreeQty;
+  const schemeEffectivePrice = (schemeBuyQty > 0 && schemeFreeQty > 0 && schemeTotalUnits > 0 && basePriceForScheme > 0)
+    ? (schemeBuyQty * basePriceForScheme) / schemeTotalUnits
+    : null;
+
   const handleAddToCart = () => {
     if (!product) return;
     const currentColor = product.colors?.[selectedColorIndex] || "";
@@ -80,18 +103,6 @@ function ProductOverviewContent({
     const finalPrice = isWholesale && isDealer && discountPercentage > 0
       ? calculateDiscountedPrice(Number(product.price) || 0)
       : Number(product.price) || 0;
-
-    let activeScheme = product.scheme;
-    if (!activeScheme && product.description) {
-      const match = product.description.match(/Buy\s+(\d+)\s+get\s+(\d+)\s+free/i);
-      if (match) {
-        activeScheme = {
-          buyQty: parseInt(match[1], 10),
-          freeQty: parseInt(match[2], 10),
-          title: `Buy ${match[1]} + ${match[2]} Free`,
-        };
-      }
-    }
 
     addItem({
       productId: product.id,
@@ -273,10 +284,10 @@ function ProductOverviewContent({
               </div>
 
               <div className="relative flex-1 aspect-square sm:aspect-auto sm:min-h-[580px] rounded-3xl bg-[#fff] border  flex items-center justify-center overflow-hidden">
-                {product.scheme && (
+                {activeScheme && (
                   <div className="absolute top-4 left-4 z-10 inline-flex items-center gap-1.5 bg-emerald-600 text-white text-xs font-semibold px-3 py-1.5 rounded-full shadow-xs">
                     <LuSparkles className="size-3.5" />
-                    <span>Scheme: Buy {product.scheme.buyQty} + {product.scheme.freeQty} Free</span>
+                    <span>Scheme: Buy {activeScheme.buyQty} + {activeScheme.freeQty} Free</span>
                   </div>
                 )}
                 {brandLogos.length > 0 && (
@@ -359,12 +370,12 @@ function ProductOverviewContent({
                     </span>
                   )}
 
-                  {product.scheme && (
+                  {activeScheme && (
                     <>
                       <span className="text-xs font-medium text-neutral-400">&bull;</span>
                       <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
                         <LuSparkles className="size-3" />
-                        Buy {product.scheme.buyQty} + {product.scheme.freeQty} Free
+                        Buy {activeScheme.buyQty} + {activeScheme.freeQty} Free
                       </span>
                     </>
                   )}
@@ -450,8 +461,8 @@ function ProductOverviewContent({
                 </div>
               )}
 
-              {product.scheme && (
-                <div className="rounded-xl border border-emerald-200 bg-emerald-50/70 p-4 space-y-2.5">
+              {activeScheme && (
+                <div className="rounded-xl border border-emerald-200 bg-emerald-50/70 p-4 space-y-3 overflow-hidden">
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2">
                       <span className="flex size-7 items-center justify-center rounded-lg bg-emerald-600 text-white shrink-0">
@@ -467,20 +478,35 @@ function ProductOverviewContent({
                       </div>
                     </div>
                     <Badge variant="outline" className="bg-emerald-100 text-emerald-800 border-emerald-300 text-xs font-semibold shrink-0">
-                      Buy {product.scheme.buyQty} + {product.scheme.freeQty} Free
+                      Buy {activeScheme.buyQty} + {activeScheme.freeQty} Free
                     </Badge>
                   </div>
 
                   <div className="pt-2 border-t border-emerald-200/70 flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 text-xs">
                     <span className="text-neutral-700">
-                      Purchase <span className="font-semibold text-neutral-900">{product.scheme.buyQty} pieces</span> and get <span className="font-semibold text-emerald-700">{product.scheme.freeQty} piece FREE</span>
+                      Purchase <span className="font-semibold text-neutral-900">{activeScheme.buyQty} pieces</span> and get <span className="font-semibold text-emerald-700">{activeScheme.freeQty} piece FREE</span>
                     </span>
-                    {product.price > 0 && (
+                    {basePriceForScheme > 0 && (
                       <span className="text-emerald-800 font-semibold whitespace-nowrap">
-                        Save Rs. {(Number(product.price) * Number(product.scheme.freeQty)).toLocaleString()}
+                        Save Rs. {(Number(basePriceForScheme) * Number(activeScheme.freeQty)).toLocaleString()}
                       </span>
                     )}
                   </div>
+
+                  {schemeEffectivePrice !== null && (
+                    <div className="pt-2.5 border-t border-emerald-200/80 flex items-center justify-between text-xs bg-emerald-100/70 -mx-4 -mb-4 px-4 py-2.5">
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-bold text-emerald-950">Net Effective Price:</span>
+                        <span className="text-[11px] text-emerald-800 font-medium">(on {activeScheme.buyQty}+{activeScheme.freeQty} bundle)</span>
+                      </div>
+                      <div className="flex items-baseline gap-1">
+                        <span className="text-sm sm:text-base font-extrabold text-emerald-900">
+                          Rs. {schemeEffectivePrice % 1 === 0 ? schemeEffectivePrice.toLocaleString() : schemeEffectivePrice.toFixed(1)}
+                        </span>
+                        <span className="text-[11px] font-semibold text-emerald-700">/ piece</span>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 

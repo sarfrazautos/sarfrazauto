@@ -198,6 +198,25 @@ export function WholesaleCatalog({
                 ? `/wholesale-product-overview/${product.slug}`
                 : `/wholesale-product-overview?id=${product.id}`;
               const brandLogos = getBrandLogos(product.brand, product.name);
+              const itemScheme = product.scheme || (() => {
+                if (!product.description) return null;
+                const match = product.description.match(/Buy\s+(\d+)\s+get\s+(\d+)\s+free/i);
+                if (!match) return null;
+                return {
+                  buyQty: parseInt(match[1], 10),
+                  freeQty: parseInt(match[2], 10),
+                };
+              })();
+
+              const itemBuyQty = Number(itemScheme?.buyQty || 0);
+              const itemFreeQty = Number(itemScheme?.freeQty || 0);
+              const itemTotalUnits = itemBuyQty + itemFreeQty;
+              const itemEffectiveBasePrice = isDealer && discountPercentage > 0
+                ? calculateDiscountedPrice(Number(product.price))
+                : Number(product.price);
+              const itemSchemeEffectivePrice = (itemBuyQty > 0 && itemFreeQty > 0 && itemTotalUnits > 0 && itemEffectiveBasePrice > 0)
+                ? (itemBuyQty * itemEffectiveBasePrice) / itemTotalUnits
+                : null;
 
               return (
                 <div key={product.id} className="group border rounded-2xl flex flex-col">
@@ -205,9 +224,9 @@ export function WholesaleCatalog({
                     href={productHref}
                     className="relative aspect-square w-full rounded-2xl bg-[#fff] overflow-hidden flex items-center justify-center transition-all duration-300 group-hover:bg-[#ebebee]"
                   >
-                    {product.scheme ? (
+                    {itemScheme ? (
                       <span className="absolute top-3.5 left-3.5 text-xs font-semibold px-2.5 py-0.5 rounded-full z-10 bg-emerald-600 text-white shadow-xs">
-                        Buy {product.scheme.buyQty}+{product.scheme.freeQty} Free
+                        Buy {itemScheme.buyQty}+{itemScheme.freeQty} Free
                       </span>
                     ) : product.badge ? (
                       <span className="absolute top-3.5 left-3.5 text-xs font-semibold px-2.5 py-0.5 rounded-full z-10 bg-red-100 text-red-600">
@@ -281,6 +300,19 @@ export function WholesaleCatalog({
                             </span>
                             <span className="text-xs font-bold text-emerald-700">
                               Rs. {calculateDiscountedPrice(Number(product.price)).toLocaleString()}
+                            </span>
+                          </div>
+                        )}
+
+                        {itemScheme && itemSchemeEffectivePrice !== null && (
+                          <div className="mt-1.5 p-1.5 px-2 rounded-lg bg-neutral-900 text-white flex items-center justify-between text-xs shadow-2xs">
+                            <span className="text-[10px] sm:text-[11px] font-medium text-neutral-300 flex items-center gap-1">
+                              <span className="size-1.5 rounded-full bg-red-500 animate-pulse" />
+                              On {itemScheme.buyQty}+{itemScheme.freeQty} Free
+                            </span>
+                            <span className="text-xs font-bold text-white whitespace-nowrap">
+                              Rs. {itemSchemeEffectivePrice % 1 === 0 ? itemSchemeEffectivePrice.toLocaleString() : itemSchemeEffectivePrice.toFixed(1)}{" "}
+                              <span className="text-[10px] font-normal text-neutral-400">/ pc</span>
                             </span>
                           </div>
                         )}
