@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Navbar from "@/components/home/navbar";
 import WholesaleShop from "@/components/wholesale/wholesale-shop";
+import { WholesaleStatusBanner } from "@/components/wholesale/wholesale-status-banner";
 import Footer from "@/components/footer";
 
 export const metadata: Metadata = {
@@ -33,6 +34,7 @@ export default function WholesalePage() {
     <>
       <Navbar />
       <main className="min-h-screen bg-white">
+        <WholesaleStatusBanner />
         <WholesaleShop />
       </main>
       <Footer />

@@ -62,7 +62,7 @@ export function WholesaleHero({
   );
 
   return (
-    <section className={cn("w-full bg-white pt-12 md:pt-16 pb-8", className)}>
+    <section className={cn("w-full bg-white pt-4 sm:pt-6 md:pt-8 pb-8", className)}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl">
           <h1 className="text-4xl sm:text-4xl md:text-5xl font-semibold tracking-tight capitalize text-neutral-950 md:text-start text-center leading-tight">

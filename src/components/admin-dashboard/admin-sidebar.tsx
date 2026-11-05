@@ -40,6 +40,7 @@ import {
   PercentIcon,
   FlameIcon,
   LineChartIcon,
+  MegaphoneIcon,
 } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { ScrollArea } from "@/components/ui/scroll-area"
@@ -280,6 +281,22 @@ export function AdminSidebar({
                     >
                       <FlameIcon className="size-4 shrink-0" />
                       <span>Special Offers</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+
+                  <SidebarMenuItem>
+                    <SidebarMenuButton
+                      isActive={pathname === "/admin/wholesale-status"}
+                      render={<Link href="/admin/wholesale-status" />}
+                      className={cn(
+                        "rounded-xl text-sm px-3 py-2 h-9 transition-colors",
+                        pathname === "/admin/wholesale-status"
+                          ? "bg-neutral-900 text-white font-medium hover:bg-neutral-800 hover:text-white"
+                          : "text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900"
+                      )}
+                    >
+                      <MegaphoneIcon className="size-4 shrink-0" />
+                      <span>Wholesale Status</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
 
