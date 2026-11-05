@@ -4,6 +4,13 @@ import { useEffect, useState } from "react";
 
 export type CartItemType = "retail" | "wholesale";
 
+export interface CartItemScheme {
+  id?: number | string;
+  buyQty: number;
+  freeQty: number;
+  title?: string;
+}
+
 export interface CartItem {
   id: string;
   productId: string | number;
@@ -19,6 +26,7 @@ export interface CartItem {
   weight?: number;
   arrivalText?: string;
   inStock?: boolean;
+  scheme?: CartItemScheme;
 }
 
 export interface AddItemInput {
@@ -35,6 +43,7 @@ export interface AddItemInput {
   weight?: number;
   arrivalText?: string;
   inStock?: boolean;
+  scheme?: CartItemScheme;
 }
 
 interface CartState {
@@ -64,6 +73,7 @@ export const useCartStore = create<CartState>()(
             updated[existingIndex] = {
               ...current,
               quantity: current.quantity + qty,
+              scheme: input.scheme || current.scheme,
             };
             return { items: updated };
           }
@@ -79,10 +89,11 @@ export const useCartStore = create<CartState>()(
             image: input.image || "/bike-engine.png",
             specs: input.specs || input.color || "Standard Fit",
             color: input.color,
-            packaging: input.packaging || (input.type === "wholesale" ? "Standard Master Carton" : undefined),
+            packaging: input.packaging || (input.type === "wholesale" ? "Standard Packaging" : undefined),
             weight: input.weight || (input.type === "wholesale" ? 15 : undefined),
             arrivalText: input.arrivalText || "Arrives Tomorrow (Karachi) / 3-5 Days Nationwide",
             inStock: input.inStock ?? true,
+            scheme: input.scheme,
           };
 
           return { items: [newItem, ...state.items] };
@@ -145,6 +156,21 @@ export function useCart() {
     0
   );
 
+  const wholesaleFreeCount = wholesaleItems.reduce((acc, i) => {
+    if (i.scheme && i.scheme.buyQty > 0 && i.quantity >= i.scheme.buyQty) {
+      return acc + Math.floor(i.quantity / i.scheme.buyQty) * (i.scheme.freeQty || 1);
+    }
+    return acc;
+  }, 0);
+
+  const wholesaleSchemeSavings = wholesaleItems.reduce((acc, i) => {
+    if (i.scheme && i.scheme.buyQty > 0 && i.quantity >= i.scheme.buyQty) {
+      const freeQty = Math.floor(i.quantity / i.scheme.buyQty) * (i.scheme.freeQty || 1);
+      return acc + freeQty * i.price;
+    }
+    return acc;
+  }, 0);
+
   return {
     ...store,
     isHydrated,
@@ -157,5 +183,7 @@ export function useCart() {
     retailSubtotal,
     wholesaleSubtotal,
     wholesaleTotalWeight,
+    wholesaleFreeCount,
+    wholesaleSchemeSavings,
   };
 }

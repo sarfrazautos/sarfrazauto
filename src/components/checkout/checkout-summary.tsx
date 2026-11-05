@@ -14,7 +14,7 @@ import { useActiveOffer } from "@/lib/hooks/use-active-offer";
 
 export function CheckoutSummary({ className = "" }: { className?: string }) {
   const router = useRouter();
-  const { items, retailSubtotal, wholesaleSubtotal } = useCart();
+  const { items, retailSubtotal, wholesaleSubtotal, wholesaleFreeCount } = useCart();
   const { info } = useCheckoutInfo();
   const { offer, isApplicable } = useActiveOffer();
 
@@ -111,6 +111,11 @@ export function CheckoutSummary({ className = "" }: { className?: string }) {
                   </h4>
                   <p className="text-[11px] text-muted-foreground mt-0.5">
                     {item.specs ? `${item.specs} • ` : ""}Qty: {item.quantity}
+                    {item.scheme && item.scheme.buyQty > 0 && item.quantity >= item.scheme.buyQty && (
+                      <span className="text-emerald-700 font-semibold ml-1.5">
+                        (+{Math.floor(item.quantity / item.scheme.buyQty) * (item.scheme.freeQty || 1)} Free)
+                      </span>
+                    )}
                   </p>
                 </div>
 
@@ -131,6 +136,13 @@ export function CheckoutSummary({ className = "" }: { className?: string }) {
               Rs. {subtotal.toLocaleString()}
             </span>
           </div>
+
+          {wholesaleFreeCount > 0 && (
+            <div className="flex items-center justify-between text-emerald-600 text-xs sm:text-sm">
+              <span>Free Scheme Items</span>
+              <span className="font-semibold">+{wholesaleFreeCount} Pieces Free</span>
+            </div>
+          )}
 
           <div className="flex items-center justify-between text-muted-foreground text-xs sm:text-sm">
             <span>Shipping</span>

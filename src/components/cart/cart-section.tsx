@@ -23,7 +23,7 @@ function CartContent({ className = "" }: { className?: string }) {
               Shopping Cart
             </h1>
             <p className="text-xs sm:text-sm text-neutral-500 mt-1">
-              Manage your retail motorcycle parts or bulk wholesale master carton orders.
+              Manage your retail motorcycle parts or bulk wholesale orders.
             </p>
           </div>
 
@@ -63,7 +63,7 @@ function CartContent({ className = "" }: { className?: string }) {
               )}
             >
               <Boxes className="size-3.5" />
-              <span>Wholesale Cartons</span>
+              <span>Wholesale Items</span>
               <span
                 className={cn(
                   "px-1.5 py-0.5 rounded-full text-[10px]",

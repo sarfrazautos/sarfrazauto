@@ -39,6 +39,7 @@ import {
   SparklesIcon,
   PercentIcon,
   FlameIcon,
+  LineChartIcon,
 } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { ScrollArea } from "@/components/ui/scroll-area"
@@ -121,6 +122,21 @@ export function AdminSidebar({
                     >
                       <LayoutDashboardIcon className="size-4 shrink-0" />
                       <span>Dashboard</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton
+                      isActive={pathname === "/admin/analytics"}
+                      render={<Link href="/admin/analytics" />}
+                      className={cn(
+                        "rounded-xl text-sm px-3 py-2 h-9 transition-colors",
+                        pathname === "/admin/analytics"
+                          ? "bg-neutral-900 text-white font-medium hover:bg-neutral-800 hover:text-white"
+                          : "text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900"
+                      )}
+                    >
+                      <LineChartIcon className="size-4 shrink-0" />
+                      <span>Analytics</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 </SidebarMenu>

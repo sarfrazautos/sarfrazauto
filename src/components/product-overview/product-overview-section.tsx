@@ -81,6 +81,18 @@ function ProductOverviewContent({
       ? calculateDiscountedPrice(Number(product.price) || 0)
       : Number(product.price) || 0;
 
+    let activeScheme = product.scheme;
+    if (!activeScheme && product.description) {
+      const match = product.description.match(/Buy\s+(\d+)\s+get\s+(\d+)\s+free/i);
+      if (match) {
+        activeScheme = {
+          buyQty: parseInt(match[1], 10),
+          freeQty: parseInt(match[2], 10),
+          title: `Buy ${match[1]} + ${match[2]} Free`,
+        };
+      }
+    }
+
     addItem({
       productId: product.id,
       type: isWholesale ? "wholesale" : "retail",
@@ -92,14 +104,20 @@ function ProductOverviewContent({
       specs: isWholesale && isDealer && discountPercentage > 0
         ? `Dealer Tier (${discountPercentage}% Discount)`
         : (currentColor || product.compatibleBike || "Standard Fit"),
-      packaging: isWholesale ? "Sealed Export Master Carton" : undefined,
+      packaging: isWholesale ? "Factory Sealed Pack" : undefined,
       inStock: product.stockStatus !== "out_of_stock",
+      scheme: activeScheme ? {
+        id: activeScheme.id,
+        buyQty: Number(activeScheme.buyQty) || 1,
+        freeQty: Number(activeScheme.freeQty) || 1,
+        title: activeScheme.title || `Buy ${activeScheme.buyQty} + ${activeScheme.freeQty} Free`,
+      } : undefined,
     });
 
     setIsAdded(true);
     toast.success(
       isWholesale
-        ? `Added ${product.name} to wholesale carton order!`
+        ? `Added ${product.name} to wholesale cart!`
         : `Added ${product.name} to cart!`,
       {
         action: {
@@ -455,7 +473,7 @@ function ProductOverviewContent({
 
                   <div className="pt-2 border-t border-emerald-200/70 flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 text-xs">
                     <span className="text-neutral-700">
-                      Purchase <span className="font-semibold text-neutral-900">{product.scheme.buyQty} cartons</span> and get <span className="font-semibold text-emerald-700">{product.scheme.freeQty} carton FREE</span>
+                      Purchase <span className="font-semibold text-neutral-900">{product.scheme.buyQty} pieces</span> and get <span className="font-semibold text-emerald-700">{product.scheme.freeQty} piece FREE</span>
                     </span>
                     {product.price > 0 && (
                       <span className="text-emerald-800 font-semibold whitespace-nowrap">

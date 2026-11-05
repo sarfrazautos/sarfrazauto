@@ -82,26 +82,38 @@ export function PaymentSection({ className = "" }: { className?: string }) {
         }
       }
 
-      const orderItems = items.map((item) => ({
-        id: item.id,
-        productId: item.productId,
-        name: item.title,
-        title: item.title,
-        price: item.price,
-        quantity: item.quantity,
-        specs: item.specs || "",
-        image: item.image,
-        type: item.type,
-      }));
+      const orderItems = items.map((item) => {
+        const freeQty = item.scheme && item.scheme.buyQty > 0 && item.quantity >= item.scheme.buyQty
+          ? Math.floor(item.quantity / item.scheme.buyQty) * (item.scheme.freeQty || 1)
+          : 0;
+
+        return {
+          id: item.id,
+          productId: item.productId,
+          name: item.title,
+          title: item.title,
+          price: item.price,
+          quantity: item.quantity,
+          specs: item.specs ? `${item.specs}${freeQty > 0 ? ` (+${freeQty} Free Pieces)` : ""}` : (freeQty > 0 ? `+${freeQty} Free Pieces` : ""),
+          image: item.image,
+          type: item.type,
+          freeQuantity: freeQty,
+        };
+      });
 
       const finalAmount = total;
       const customerName = info.fullName?.trim() || "Customer";
       const finalMethod = paymentMethod === "bank" ? selectedBankMethod : "Cash on Delivery";
+      const totalFree = items.reduce((acc, i) => {
+        return acc + (i.scheme && i.scheme.buyQty > 0 && i.quantity >= i.scheme.buyQty ? Math.floor(i.quantity / i.scheme.buyQty) * (i.scheme.freeQty || 1) : 0);
+      }, 0);
+
       const notesParts = [
         info.address ? `Address: ${info.address}` : "",
         info.apartment ? `Apartment: ${info.apartment}` : "",
         info.notes ? `Note: ${info.notes}` : "",
         offerDiscount > 0 && offer ? `Offer: ${offer.title} (${offer.discountPercent}% OFF, -Rs. ${offerDiscount})` : "",
+        totalFree > 0 ? `Trade Scheme: +${totalFree} Free Pieces Included` : "",
         `Method: ${finalMethod}`,
       ].filter(Boolean);
 
