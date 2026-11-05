@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import Link from "next/link"
 import {
   PackageCheck,
   Clock,
@@ -14,6 +15,8 @@ import {
   PackageOpen,
   Search,
   AlertTriangle,
+  FileText,
+  Printer,
 } from "lucide-react"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
@@ -301,7 +304,15 @@ export function AdminOrderHistorySection() {
 
                 return (
                   <TableRow key={order.id} className="text-xs hover:bg-neutral-50/70">
-                    <TableCell className="font-mono text-neutral-600 font-medium">{order.orderNumber}</TableCell>
+                    <TableCell className="font-mono text-neutral-600 font-medium">
+                      <Link
+                        href={`/admin/orders/${order.id}/invoice`}
+                        className="font-bold text-neutral-900 hover:text-red-600 hover:underline transition-colors"
+                        title="View & Print Official Invoice"
+                      >
+                        {order.orderNumber}
+                      </Link>
+                    </TableCell>
                     <TableCell className="font-medium text-neutral-900">
                       <div>
                         <p>{order.customerName}</p>
@@ -369,6 +380,14 @@ export function AdminOrderHistorySection() {
                     <TableCell className="text-neutral-600 whitespace-nowrap">{formatDate(order.createdAt)}</TableCell>
                     <TableCell className="text-right pr-4">
                       <div className="flex items-center justify-end gap-1.5">
+                        <Link
+                          href={`/admin/orders/${order.id}/invoice`}
+                          title="View & Print Official Invoice"
+                          className="px-2 py-1.5 rounded-lg border border-neutral-300 text-neutral-800 hover:text-red-700 hover:bg-red-50 hover:border-red-300 transition-all cursor-pointer inline-flex items-center gap-1 font-medium bg-white shadow-2xs"
+                        >
+                          <Printer className="size-3.5 text-red-600" />
+                          <span className="text-[11px] font-semibold">Invoice</span>
+                        </Link>
                         <button
                           type="button"
                           disabled={isAnyUpdating}

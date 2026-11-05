@@ -3,11 +3,10 @@
 import { useState } from "react"
 import Link from "next/link"
 import { useQuery } from "@tanstack/react-query"
-import { ChevronRight, Eye, Search, Loader2 } from "lucide-react"
+import { ChevronRight, Eye, Search, Loader2, Printer } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { CommercialInvoiceReceiptDialog } from "./commercial-invoice-receipt-dialog"
 import {
   Table,
   TableBody,
@@ -23,7 +22,6 @@ export function CommercialInvoicesSection() {
   const [currentPage, setCurrentPage] = useState(1)
   const [searchQuery, setSearchQuery] = useState("")
   const [statusFilter, setStatusFilter] = useState("All")
-  const [selectedInvoice, setSelectedInvoice] = useState<any | null>(null)
 
   const limit = 20
 
@@ -183,15 +181,16 @@ export function CommercialInvoicesSection() {
                       {getStatusBadge(inv.status)}
                     </TableCell>
                     <TableCell className="text-right">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="h-7 px-2.5 text-xs text-neutral-700 hover:text-neutral-900 border-neutral-200 cursor-pointer gap-1.5"
-                        onClick={() => setSelectedInvoice(inv)}
-                      >
-                        <Eye className="size-3.5" />
-                        <span>View</span>
-                      </Button>
+                      <Link href={`/invoice/${inv.orderNumber ? inv.orderNumber.replace(/^#/, "") : inv.id}`}>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-7 px-2.5 text-xs text-neutral-700 hover:text-neutral-900 border-neutral-200 cursor-pointer gap-1.5"
+                        >
+                          <Printer className="size-3.5" />
+                          <span>Invoice</span>
+                        </Button>
+                      </Link>
                     </TableCell>
                   </TableRow>
                 ))
@@ -206,14 +205,6 @@ export function CommercialInvoicesSection() {
           onPageChange={setCurrentPage}
         />
       </div>
-
-      <CommercialInvoiceReceiptDialog
-        invoice={selectedInvoice}
-        open={!!selectedInvoice}
-        onOpenChange={(open: boolean) => {
-          if (!open) setSelectedInvoice(null)
-        }}
-      />
     </div>
   )
 }
