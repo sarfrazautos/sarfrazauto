@@ -1,4 +1,4 @@
-import { pgTable, serial, text, timestamp, integer } from "drizzle-orm/pg-core"
+import { pgTable, serial, text, timestamp, doublePrecision } from "drizzle-orm/pg-core"
 
 export const dealerRequests = pgTable("dealer_requests", {
   id: serial("id").primaryKey(),
@@ -11,7 +11,7 @@ export const dealerRequests = pgTable("dealer_requests", {
   address: text("address"),
   cnic: text("cnic"),
   ntn: text("ntn"),
-  discountPercentage: integer("discount_percentage").default(0).notNull(),
+  discountPercentage: doublePrecision("discount_percentage").default(0).notNull(),
   status: text("status").notNull().default("Pending"),
   submittedAt: timestamp("submitted_at").defaultNow(),
   notes: text("notes"),

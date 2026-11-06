@@ -63,7 +63,8 @@ export async function PUT(
     if (body.ntn !== undefined) updateData.ntn = body.ntn
     if (body.notes !== undefined) updateData.notes = body.notes
     if (body.discountPercentage !== undefined) {
-      updateData.discountPercentage = Math.max(0, parseInt(String(body.discountPercentage), 10) || 0)
+      const parsed = parseFloat(String(body.discountPercentage))
+      updateData.discountPercentage = isNaN(parsed) ? 0 : Math.max(0, Math.min(100, Math.round(parsed * 100) / 100))
     }
 
     const [updated] = await db
@@ -81,8 +82,8 @@ export async function PUT(
 
     const cleanEmail = updated.email.trim().toLowerCase()
     const targetDiscount = body.discountPercentage !== undefined
-      ? Math.max(0, parseInt(String(body.discountPercentage), 10) || 0)
-      : (updated.discountPercentage || 0)
+      ? (isNaN(parseFloat(String(body.discountPercentage))) ? 0 : Math.max(0, Math.min(100, Math.round(parseFloat(String(body.discountPercentage)) * 100) / 100)))
+      : (Number(updated.discountPercentage) || 0)
 
     if (body.discountPercentage !== undefined && !body.status) {
       try {

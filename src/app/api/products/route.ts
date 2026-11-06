@@ -99,7 +99,12 @@ export async function GET(req: Request) {
       }
     }
     if (brand && brand !== "all" && brand !== "All Brands" && brand !== "All") {
-      conditions.push(ilike(products.brand, `%${brand}%`))
+      const lowerBrand = brand.toLowerCase().trim()
+      if (lowerBrand === "other" || lowerBrand === "others") {
+        conditions.push(or(ilike(products.brand, "%other%"), ilike(products.brand, "%others%")))
+      } else {
+        conditions.push(ilike(products.brand, `%${brand}%`))
+      }
     }
     if (bike && bike !== "all" && bike !== "All Bikes" && bike !== "All") {
       const lowerBike = bike.toLowerCase().trim()

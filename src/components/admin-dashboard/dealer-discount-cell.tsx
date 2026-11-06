@@ -48,7 +48,8 @@ export function DealerDiscountCell({
 
   const handleSave = async (e?: React.FormEvent) => {
     if (e) e.preventDefault()
-    const numericValue = Math.max(0, Math.min(100, parseInt(value, 10) || 0))
+    const parsed = parseFloat(value)
+    const numericValue = isNaN(parsed) ? 0 : Math.max(0, Math.min(100, Math.round(parsed * 100) / 100))
 
     try {
       setLoading(true)
@@ -106,6 +107,7 @@ export function DealerDiscountCell({
             <div className="flex items-center gap-1.5">
               <Input
                 type="number"
+                step="any"
                 min="0"
                 max="100"
                 value={value}

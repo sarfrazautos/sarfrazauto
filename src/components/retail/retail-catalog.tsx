@@ -65,8 +65,8 @@ export function RetailCatalog({
   const brandQuery =
     !activeBrand || activeBrand === "All Brands" || activeBrand === "All"
       ? ""
-      : activeBrand === "Others"
-      ? ""
+      : activeBrand === "Others" || activeBrand === "other" || activeBrand === "others"
+      ? "Other"
       : activeBrand;
 
   const bikeQuery =

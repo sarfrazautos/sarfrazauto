@@ -78,7 +78,11 @@ export function WholesaleCatalog({
 
   const categoryQuery = !activeCategory || activeCategory === "All" ? "" : activeCategory;
   const brandQuery =
-    !activeBrand || activeBrand === "All Brands" || activeBrand === "All" ? "" : activeBrand;
+    !activeBrand || activeBrand === "All Brands" || activeBrand === "All"
+      ? ""
+      : activeBrand === "Others" || activeBrand === "other" || activeBrand === "others"
+      ? "Other"
+      : activeBrand;
   const bikeQuery =
     !activeBike || activeBike === "All Bikes" || activeBike === "All" ? "" : activeBike;
 
