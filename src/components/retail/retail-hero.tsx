@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Search, RotateCcw } from "lucide-react";
+import { Search, RotateCcw, Loader2, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -71,15 +71,34 @@ export function RetailHero({
   onClearFilters?: () => void;
   className?: string;
 }) {
-  const [searchInput, setSearchInput] = useState(searchQuery);
+  const [searchInput, setSearchInput] = useState(searchQuery || "");
+  const [isDebouncing, setIsDebouncing] = useState(false);
 
   useEffect(() => {
-    setSearchInput(searchQuery);
+    setSearchInput(searchQuery || "");
   }, [searchQuery]);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSearchSubmit(searchInput.trim());
+  useEffect(() => {
+    if (searchInput === (searchQuery || "")) {
+      setIsDebouncing(false);
+      return;
+    }
+
+    setIsDebouncing(true);
+    const timer = setTimeout(() => {
+      onSearchSubmit(searchInput.trim());
+      setIsDebouncing(false);
+    }, 750);
+
+    return () => clearTimeout(timer);
+  }, [searchInput, searchQuery, onSearchSubmit]);
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      onSearchSubmit(searchInput.trim());
+      setIsDebouncing(false);
+    }
   };
 
   const hasActiveFilters = Boolean(
@@ -107,24 +126,34 @@ export function RetailHero({
         </div>
 
         <div className="mt-8 flex flex-col xl:flex-row gap-3 sm:gap-4 items-stretch xl:items-center justify-between">
-          <form onSubmit={handleSubmit} className="flex items-center gap-2 flex-1 max-w-lg">
-            <div className="relative flex-1">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-neutral-400" />
-              <Input
-                type="text"
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
-                placeholder="Search parts by name (e.g. cylinder, clutch, piston)..."
-                className="w-full h-10 pl-10 pr-4 text-sm transition-all bg-white"
-              />
-            </div>
-            <Button
-              type="submit"
-              className="h-10 px-4 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold rounded-lg cursor-pointer shrink-0"
-            >
-              Search
-            </Button>
-          </form>
+          <div className="relative flex-1 max-w-lg">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-neutral-400 pointer-events-none" />
+            <Input
+              type="text"
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder="Search parts by name (e.g. cylinder, clutch, piston)..."
+              className="w-full h-10 pl-10 pr-10 text-sm transition-all bg-white"
+            />
+            {isDebouncing ? (
+              <div className="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none">
+                <Loader2 className="size-4 animate-spin text-neutral-400" />
+              </div>
+            ) : searchInput ? (
+              <button
+                type="button"
+                onClick={() => {
+                  setSearchInput("");
+                  onSearchSubmit("");
+                }}
+                className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-neutral-400 hover:text-neutral-600 rounded-full cursor-pointer transition-colors"
+                aria-label="Clear search"
+              >
+                <X className="size-3.5" />
+              </button>
+            ) : null}
+          </div>
 
           <div className="flex flex-wrap sm:flex-nowrap items-stretch sm:items-center gap-2.5 sm:gap-3">
             <Select value={activeCategory} onValueChange={(val) => onCategoryChange(val as string)}>
