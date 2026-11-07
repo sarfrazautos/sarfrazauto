@@ -5,14 +5,23 @@ import { useRouter, useSearchParams } from "next/navigation";
 import RetailHero from "./retail-hero";
 import RetailCatalog from "./retail-catalog";
 import { normalizeCategory } from "@/lib/category-mapper";
+import { useSession } from "@/lib/auth-client";
 
 function RetailShopContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { data: session, isPending } = useSession();
   const searchParam = searchParams.get("search") || searchParams.get("q") || "";
   const brandParam = searchParams.get("brand");
   const categoryParam = searchParams.get("category");
   const bikeParam = searchParams.get("bike") || searchParams.get("model");
+
+  useEffect(() => {
+    if (!isPending && session?.user) {
+      const categoryQuery = categoryParam ? `?category=${categoryParam}` : "";
+      router.replace(`/wholesale${categoryQuery}`);
+    }
+  }, [session, isPending, router, categoryParam]);
 
   const [searchQuery, setSearchQuery] = useState(searchParam);
   const [activeCategory, setActiveCategory] = useState("All");
@@ -160,6 +169,10 @@ function RetailShopContent() {
     setCurrentPage(1);
     router.replace("/retail");
   };
+
+  if (!isPending && session?.user) {
+    return null;
+  }
 
   return (
     <>

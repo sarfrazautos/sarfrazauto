@@ -5,6 +5,7 @@ import Link from "next/link"
 import { ArrowRight } from "lucide-react"
 import { Swiper, SwiperSlide } from "swiper/react"
 import { Autoplay } from "swiper/modules"
+import { useSession } from "@/lib/auth-client"
 
 import "swiper/css"
 
@@ -12,68 +13,72 @@ const BRANDS = [
   {
     name: "Honda",
     image: "/brands-logo/honda.png",
-    href: "/retail?brand=honda",
+    slug: "honda",
   },
   {
     name: "Super Power",
     image: "/brands-logo/super-power.png",
-    href: "/retail?brand=super-power",
+    slug: "super-power",
   },
   {
     name: "Crown",
     image: "/brands-logo/crown.png",
-    href: "/retail?brand=crown",
+    slug: "crown",
   },
   {
     name: "Yamaha",
     image: "/brands-logo/yamaha.png",
-    href: "/retail?brand=yamaha",
+    slug: "yamaha",
   },
   {
     name: "Suzuki",
     image: "/brands-logo/suzuki.png",
-    href: "/retail?brand=suzuki",
+    slug: "suzuki",
   },
   {
     name: "United",
     image: "/brands-logo/united.png",
-    href: "/retail?brand=united",
+    slug: "united",
   },
   {
     name: "Super Star",
     image: "/brands-logo/super-star.png",
-    href: "/retail?brand=super-star",
+    slug: "super-star",
   },
   {
     name: "Unique",
     image: "/brands-logo/unique.png",
-    href: "/retail?brand=unique",
+    slug: "unique",
   },
   {
     name: "Servis",
     image: "/brands-logo/servis.png",
-    href: "/retail?brand=servis",
+    slug: "servis",
   },
   {
     name: "Panther",
     image: "/brands-logo/panther.png",
-    href: "/retail?brand=panther",
+    slug: "panther",
   },
   {
     name: "Diamond Tyres",
     image: "/brands-logo/diamond-tyres.png",
-    href: "/retail?brand=diamond-tyres",
+    slug: "diamond-tyres",
   },
   {
     name: "General Tyre",
     image: "/brands-logo/general-tyre.png",
-    href: "/retail?brand=general-tyre",
+    slug: "general-tyre",
   },
 ]
 
 export function BrandsCircleSection() {
+  const { data: session } = useSession()
+  const isAuthenticated = Boolean(session?.user)
+  const basePath = isAuthenticated ? "/wholesale" : "/retail"
+
   return (
-    <section className="w-full sm:pt-20   py-10 sm:py-14 border-t border-neutral-100">
+    <section className="w-full sm:pt-20 py-10 sm:py-14 border-t border-neutral-100">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
         <div className="flex items-center justify-between mb-8 sm:mb-10">
           <h2 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight text-neutral-900 uppercase">
@@ -81,7 +86,7 @@ export function BrandsCircleSection() {
           </h2>
 
           <Link
-            href="/retail"
+            href={basePath}
             className="group flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-neutral-600 hover:text-red-600 transition-colors shrink-0"
           >
             <span>View All</span>
@@ -100,7 +105,7 @@ export function BrandsCircleSection() {
           slidesPerView={2}
           breakpoints={{
             480: {
-              slidesPerView: 2,
+              slidesPerView: 2.5,
               spaceBetween: 18,
             },
             640: {
@@ -115,26 +120,22 @@ export function BrandsCircleSection() {
               slidesPerView: 5,
               spaceBetween: 28,
             },
-            1280: {
-              slidesPerView: 5,
-              spaceBetween: 32,
-            },
           }}
           className="w-full !py-2"
         >
-          {[...BRANDS, ...BRANDS].map((brand, idx) => (
+          {BRANDS.map((brand, idx) => (
             <SwiperSlide key={idx}>
               <Link
-                href={brand.href}
+                href={`${basePath}?brand=${brand.slug}`}
                 className="group flex flex-col items-center gap-3 cursor-pointer py-1"
               >
-                <div className="w-36 h-36 sm:w-36 sm:h-36 md:w-48 md:h-48 lg:w-52 lg:h-52 rounded-full overflow-hidden relative bg-[#eef2f5] mx-auto">
+                <div className="w-32 h-32 sm:w-28 sm:h-28 md:w-44 md:h-44 rounded-full overflow-hidden relative">
                   <Image
                     src={brand.image}
                     alt={brand.name}
                     fill
-                    sizes="(max-width: 640px) 144px, (max-width: 768px) 192px, 208px"
-                    className="object-cover rounded-full object-center transition-transform duration-500 group-hover:scale-110"
+                    sizes="(max-width: 640px) 96px, (max-width: 768px) 112px, 176px"
+                    className="object-cover rounded-full object-center p-2.5 transition-transform duration-500 group-hover:scale-110"
                   />
                 </div>
 

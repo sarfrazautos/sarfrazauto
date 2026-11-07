@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay } from "swiper/modules";
+import { useSession } from "@/lib/auth-client";
 
 import "swiper/css";
 
@@ -12,56 +13,60 @@ const CATEGORIES = [
   {
     name: "Tyres & Tubes",
     image: "/categories/tyre.jpg",
-    href: "/retail?category=tyres",
+    slug: "tyres",
   },
   {
     name: "Fuel & Oils",
     image: "/categories/fuel.jpg",
-    href: "/retail?category=fuel",
+    slug: "fuel",
   },
   {
     name: "Silencers",
     image: "/categories/silencer.jpg",
-    href: "/retail?category=silencer",
+    slug: "silencer",
   },
   {
     name: "Backlights",
     image: "/categories/backlight.jpg",
-    href: "/retail?category=backlight",
+    slug: "backlight",
   },
   {
     name: "Fuel Tanks",
     image: "/categories/fuel-tank.jpg",
-    href: "/retail?category=fuel-tank",
+    slug: "fuel-tank",
   },
   {
     name: "Engine Assemblies",
     image: "/categories/engine.jpg",
-    href: "/retail?category=engine",
+    slug: "engine",
   },
   {
     name: "Shock Absorbers",
     image: "/categories/shocks.jpg",
-    href: "/retail?category=shocks",
+    slug: "shocks",
   },
   {
     name: "Carburetors",
     image: "/categories/carburetor.jpg",
-    href: "/retail?category=carburetor",
+    slug: "carburetor",
   },
   {
     name: "Alloy Rims",
     image: "/categories/alloy-rim.jpg",
-    href: "/retail?category=wheels",
+    slug: "wheels",
   },
   {
     name: "Headlights",
     image: "/categories/headlight.jpg",
-    href: "/retail?category=headlight",
+    slug: "headlight",
   },
 ];
 
 export function CategoriesCircleSection() {
+  const { data: session } = useSession();
+  const isAuthenticated = Boolean(session?.user);
+  const basePath = isAuthenticated ? "/wholesale" : "/retail";
+
   return (
     <section className="w-full bg-[#fcfbf9] py-10 sm:py-14">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
@@ -71,7 +76,7 @@ export function CategoriesCircleSection() {
           </h2>
 
           <Link
-            href="/retail"
+            href={basePath}
             className="group flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-neutral-600 hover:text-red-600 transition-colors"
           >
             <span>View All</span>
@@ -111,7 +116,7 @@ export function CategoriesCircleSection() {
           {CATEGORIES.map((cat, idx) => (
             <SwiperSlide key={idx}>
               <Link
-                href={cat.href}
+                href={`${basePath}?category=${cat.slug}`}
                 className="group flex flex-col items-center gap-3 cursor-pointer py-1"
               >
                 <div className="w-44 h-44 sm:w-28 sm:h-28 md:w-56 md:h-56 rounded-full overflow-hidden relative">

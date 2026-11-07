@@ -22,8 +22,11 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useCart } from "@/lib/store/cart-store";
 import { useActiveOffer } from "@/lib/hooks/use-active-offer";
+import { useSession } from "@/lib/auth-client";
 
 function CartContent({ className = "" }: { className?: string }) {
+  const { data: session } = useSession();
+  const isAuthenticated = Boolean(session?.user);
   const {
     items,
     retailCount,
@@ -124,7 +127,7 @@ function CartContent({ className = "" }: { className?: string }) {
 
           <div className="flex items-center gap-3">
             <Link
-              href="/retail"
+              href={isAuthenticated ? "/wholesale" : "/retail"}
               className="inline-flex items-center gap-1 text-xs sm:text-sm font-medium text-neutral-600 hover:text-neutral-950 transition-colors"
             >
               Continue Shopping
@@ -142,18 +145,22 @@ function CartContent({ className = "" }: { className?: string }) {
                   Your shopping bag is empty
                 </h3>
                 <p className="text-neutral-500 text-xs sm:text-sm mt-1 max-w-sm mx-auto">
-                  You don&apos;t have any products in your cart yet. Explore our retail or wholesale catalogs.
+                  {isAuthenticated
+                    ? "You don't have any wholesale products in your cart yet. Explore our wholesale catalog."
+                    : "You don't have any products in your cart yet. Explore our retail or wholesale catalogs."}
                 </p>
                 <div className="flex flex-wrap items-center justify-center gap-3 mt-5">
-                  <Link
-                    href="/retail"
-                    className="inline-flex items-center justify-center px-4 py-2.5 rounded-lg bg-neutral-950 text-white text-xs font-medium hover:bg-neutral-800 transition-colors"
-                  >
-                    Browse Retail Counter
-                  </Link>
+                  {!isAuthenticated && (
+                    <Link
+                      href="/retail"
+                      className="inline-flex items-center justify-center px-4 py-2.5 rounded-lg bg-neutral-950 text-white text-xs font-medium hover:bg-neutral-800 transition-colors"
+                    >
+                      Browse Retail Counter
+                    </Link>
+                  )}
                   <Link
                     href="/wholesale"
-                    className="inline-flex items-center justify-center px-4 py-2.5 rounded-lg bg-white border border-neutral-200 text-neutral-900 text-xs font-medium hover:bg-neutral-50 transition-colors"
+                    className="inline-flex items-center justify-center px-4 py-2.5 rounded-lg bg-red-600 text-white text-xs font-medium hover:bg-red-700 transition-colors"
                   >
                     Browse Wholesale Deals
                   </Link>

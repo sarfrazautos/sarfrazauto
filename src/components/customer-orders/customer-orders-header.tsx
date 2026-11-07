@@ -26,15 +26,10 @@ export function CustomerOrdersHeader() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Link href="/retail">
-            <Button variant="outline" className="h-10 px-4 font-medium cursor-pointer shadow-2xs">
-              Retail Catalog
-            </Button>
-          </Link>
           <Link href="/wholesale">
             <Button className="h-10 px-4 font-medium cursor-pointer shadow-2xs bg-neutral-900 hover:bg-neutral-800 text-white">
               <PackagePlus className="w-4 h-4 mr-2" />
-              Wholesale Portal
+              Wholesale Catalog
             </Button>
           </Link>
         </div>

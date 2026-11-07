@@ -67,12 +67,28 @@ export async function proxy(request: NextRequest) {
   const isAdminLoginPage = pathname === "/admin/login"
   const isCustomerAuthPage = pathname === "/login" || pathname === "/signup"
   const isCustomerPortal = pathname === "/customer-portal" || pathname.startsWith("/customer-portal/")
+  const isRetailRoute =
+    pathname === "/retail" ||
+    pathname.startsWith("/retail/") ||
+    pathname === "/product-overview" ||
+    pathname.startsWith("/product-overview/")
   const isWholesaleRoute =
     pathname === "/wholesale" ||
     pathname.startsWith("/wholesale/") ||
     pathname === "/wholesale-product-overview" ||
     pathname.startsWith("/wholesale-product-overview/")
   const isAdminRoute = pathname === "/admin" || pathname.startsWith("/admin/")
+
+  if (isRetailRoute && isAuthenticated) {
+    if (pathname.startsWith("/product-overview/")) {
+      const slug = pathname.replace("/product-overview/", "")
+      const targetUrl = new URL(`/wholesale-product-overview/${slug}`, request.url)
+      return NextResponse.redirect(targetUrl)
+    }
+    const targetUrl = new URL("/wholesale", request.url)
+    targetUrl.search = request.nextUrl.search
+    return NextResponse.redirect(targetUrl)
+  }
 
   if (isAdminRoute) {
     if (!isAuthenticated && !isAdminLoginPage) {
@@ -128,6 +144,10 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
+    "/retail",
+    "/retail/:path*",
+    "/product-overview",
+    "/product-overview/:path*",
     "/admin",
     "/admin/:path*",
     "/customer-portal",

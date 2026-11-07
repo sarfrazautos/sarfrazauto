@@ -74,11 +74,13 @@ export function Footer({ className = "" }: FooterProps) {
                     About us
                   </Link>
                 </li>
-                <li>
-                  <Link href="/retail" className="text-zinc-300 hover:text-white transition-colors">
-                    Retail Shop
-                  </Link>
-                </li>
+                {!isAuthenticated && (
+                  <li>
+                    <Link href="/retail" className="text-zinc-300 hover:text-white transition-colors">
+                      Retail Shop
+                    </Link>
+                  </li>
+                )}
                 <li>
                   <Link
                     href={isAuthenticated ? "/wholesale" : "/signup"}

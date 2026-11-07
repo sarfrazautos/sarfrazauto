@@ -86,23 +86,30 @@ export function Navbar({ navigationData = defaultNavigation, className }: Navbar
   const { data: session } = useSession();
   const isAuthenticated = Boolean(session?.user);
 
-  const baseNav = navigationData.map((item) => {
-    if (item.title === "Wholesale") {
-      return {
-        ...item,
-        title: isAuthenticated ? "Wholesale" : "Wholesale (Dealers)",
-        href: isAuthenticated ? "/wholesale" : "/signup",
-      };
-    }
-    if (item.title === "My Account") {
-      return {
-        ...item,
-        title: isAuthenticated ? "Dealer Portal" : "Dealer Login",
-        href: isAuthenticated ? "/customer-portal" : "/login",
-      };
-    }
-    return item;
-  });
+  const baseNav = navigationData
+    .filter((item) => {
+      if (isAuthenticated && (item.href === "/retail" || item.title === "Retail Shop")) {
+        return false;
+      }
+      return true;
+    })
+    .map((item) => {
+      if (item.title === "Wholesale") {
+        return {
+          ...item,
+          title: isAuthenticated ? "Wholesale" : "Wholesale (Dealers)",
+          href: isAuthenticated ? "/wholesale" : "/signup",
+        };
+      }
+      if (item.title === "My Account") {
+        return {
+          ...item,
+          title: isAuthenticated ? "Dealer Portal" : "Dealer Login",
+          href: isAuthenticated ? "/customer-portal" : "/login",
+        };
+      }
+      return item;
+    });
 
   const navItems = baseNav.map((item) => ({
     ...item,

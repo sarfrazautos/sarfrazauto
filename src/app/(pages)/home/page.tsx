@@ -4,7 +4,7 @@ import HeroSection from "@/components/home/hero-section";
 import CategoriesCircleSection from "@/components/home/categories-circle-section";
 import BrandsCircleSection from "@/components/home/brands-circle-section";
 import PromoBanners from "@/components/home/promo-banners";
-import RetailProducts from "@/components/home/retail-products";
+import HomeProductsSection from "@/components/home/home-products-section";
 import WholesaleDealerCta from "@/components/home/wholesale-dealer-cta";
 import PurchaseCtaSection from "@/components/home/purchase-cta-section";
 import BranchesCards from "@/components/home/branches-cards";
@@ -35,7 +35,7 @@ export default function HomePage() {
         <CategoriesCircleSection />
         <PromoBanners />
         <BrandsCircleSection />
-        <RetailProducts />
+        <HomeProductsSection />
         <WholesaleDealerCta />
         <PurchaseCtaSection />
         <BranchesCards />

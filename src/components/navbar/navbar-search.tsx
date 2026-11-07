@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ChevronDown, Search, X } from "lucide-react";
 import { RiMotorbikeFill } from "react-icons/ri";
+import { useSession } from "@/lib/auth-client";
 
 import {
   DropdownMenu,
@@ -23,6 +24,8 @@ const VEHICLES = [
 
 export function NavbarSearch() {
   const router = useRouter();
+  const { data: session } = useSession();
+  const isAuthenticated = Boolean(session?.user);
   const [query, setQuery] = useState("");
   const [selectedVehicle, setSelectedVehicle] = useState("");
 
@@ -38,8 +41,9 @@ export function NavbarSearch() {
       else if (selectedVehicle.includes("150")) params.set("bike", "150cc");
       else params.set("bike", selectedVehicle);
     }
+    const targetPath = isAuthenticated ? "/wholesale" : "/retail";
     const qs = params.toString();
-    router.push(qs ? `/retail?${qs}` : "/retail");
+    router.push(qs ? `${targetPath}?${qs}` : targetPath);
   };
 
   return (

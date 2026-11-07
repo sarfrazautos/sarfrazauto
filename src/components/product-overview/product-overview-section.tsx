@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, Suspense } from "react";
+import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
@@ -26,6 +26,7 @@ import { getBrandLogos } from "@/lib/brand-logos";
 import { useCartStore } from "@/lib/store/cart-store";
 import { useActiveOffer } from "@/lib/hooks/use-active-offer";
 import { useDealerDiscount } from "@/lib/hooks/use-dealer-discount";
+import { useSession } from "@/lib/auth-client";
 import RelatedProducts from "./related-products";
 
 function ProductOverviewContent({
@@ -39,7 +40,14 @@ function ProductOverviewContent({
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { data: session, isPending } = useSession();
   const productIdentifier = slug || searchParams.get("slug") || searchParams.get("id");
+
+  useEffect(() => {
+    if (!isPending && session?.user && defaultType === "retail") {
+      router.replace(`/wholesale-product-overview/${productIdentifier || ""}`);
+    }
+  }, [session, isPending, defaultType, productIdentifier, router]);
 
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [selectedColorIndex, setSelectedColorIndex] = useState(0);
@@ -251,6 +259,10 @@ function ProductOverviewContent({
   const isOutOfStock = stockStatusText === "outofstock" || stockStatusText === "out of stock";
   const isLowStock = stockStatusText === "lowstock" || stockStatusText === "low stock";
   const brandLogos = getBrandLogos(product.brand, product.name);
+
+  if (!isPending && session?.user && defaultType === "retail") {
+    return null;
+  }
 
   return (
     <>

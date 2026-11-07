@@ -13,6 +13,7 @@ import "swiper/css/effect-fade";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
 import { WHATSAPP_RAW } from "@/lib/constants";
+import { useSession } from "@/lib/auth-client";
 
 const SLIDES = [
   {
@@ -56,6 +57,23 @@ const SLIDES = [
 export function HeroSection() {
   const swiperRef = useRef<SwiperType | null>(null);
   const [activeIndex, setActiveIndex] = useState(0);
+  const { data: session } = useSession();
+  const isAuthenticated = Boolean(session?.user);
+
+  const slides = SLIDES.map((slide) => {
+    if (isAuthenticated) {
+      if (slide.primaryHref === "/retail" || slide.primaryHref === "/signup") {
+        return {
+          ...slide,
+          primaryText: "SHOP WHOLESALE",
+          primaryHref: "/wholesale",
+          secondaryText: slide.secondaryHref.startsWith("tel:") ? slide.secondaryText : "DEALER PORTAL",
+          secondaryHref: slide.secondaryHref.startsWith("tel:") ? slide.secondaryHref : "/customer-portal",
+        };
+      }
+    }
+    return slide;
+  });
 
   return (
     <section className="relative w-full bg-black overflow-hidden pt-20">
@@ -77,7 +95,7 @@ export function HeroSection() {
         }}
         className="w-full"
       >
-        {SLIDES.map((slide, idx) => (
+        {slides.map((slide, idx) => (
           <SwiperSlide key={idx} className="relative w-full">
             <div className="relative w-full min-h-[500px] sm:min-h-[640px] md:min-h-[700px] lg:min-h-[760px] xl:min-h-[800px] flex items-center">
               <div className="absolute inset-0 z-0">

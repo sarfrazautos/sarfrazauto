@@ -6,6 +6,7 @@ import { ArrowLeft, ChevronRight, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { WishlistCard, WishlistItem } from "./wishlist-card";
 import { WishlistEmpty } from "./wishlist-empty";
+import { useSession } from "@/lib/auth-client";
 
 const defaultWishlistItems: WishlistItem[] = [
   {
@@ -55,6 +56,8 @@ const defaultWishlistItems: WishlistItem[] = [
 ];
 
 export function WishlistSection() {
+  const { data: session } = useSession();
+  const isAuthenticated = Boolean(session?.user);
   const [items, setItems] = useState<WishlistItem[]>(defaultWishlistItems);
 
   const handleRemove = (id: string) => {
@@ -118,7 +121,7 @@ export function WishlistSection() {
 
       {items.length > 0 && (
         <div className="mt-12 pt-6 border-t border-neutral-200 flex items-center justify-between">
-          <Link href="/retail">
+          <Link href={isAuthenticated ? "/wholesale" : "/retail"}>
             <Button variant="ghost" size="sm" className="cursor-pointer text-neutral-600">
               <ArrowLeft className="w-4 h-4 mr-1.5" />
               Continue Shopping

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
+import { useSession } from "@/lib/auth-client";
 
 export interface PaymentSuccessProps {
   orderId?: string;
@@ -20,6 +21,8 @@ export function PaymentSuccess({
   amount = "Rs. 16,550",
   className = "",
 }: PaymentSuccessProps) {
+  const { data: session } = useSession();
+  const isAuthenticated = Boolean(session?.user);
   const isBank = paymentMethod === "bank";
   const whatsappMessage = encodeURIComponent(
     `Hello Sarfraz Autos! I have placed order ${orderId} for ${amount}. Please confirm dispatch.`
@@ -84,7 +87,7 @@ export function PaymentSuccess({
         </a>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-          <Link href="/retail" className="block w-full">
+          <Link href={isAuthenticated ? "/wholesale" : "/retail"} className="block w-full">
             <Button
               type="button"
               variant="outline"

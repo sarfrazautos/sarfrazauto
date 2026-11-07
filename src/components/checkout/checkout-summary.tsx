@@ -11,9 +11,12 @@ import { cn } from "@/lib/utils";
 import { useCart } from "@/lib/store/cart-store";
 import { useCheckoutInfo } from "@/lib/store/checkout-store";
 import { useActiveOffer } from "@/lib/hooks/use-active-offer";
+import { useSession } from "@/lib/auth-client";
 
 export function CheckoutSummary({ className = "" }: { className?: string }) {
   const router = useRouter();
+  const { data: session } = useSession();
+  const isAuthenticated = Boolean(session?.user);
   const { items, retailSubtotal, wholesaleSubtotal, wholesaleFreeCount } = useCart();
   const { info } = useCheckoutInfo();
   const { offer, isApplicable } = useActiveOffer();
@@ -87,7 +90,7 @@ export function CheckoutSummary({ className = "" }: { className?: string }) {
             <ShoppingBag className="size-8 mx-auto text-neutral-400" />
             <p className="text-xs text-muted-foreground">Your cart is currently empty.</p>
             <Link
-              href="/retail"
+              href={isAuthenticated ? "/wholesale" : "/retail"}
               className="inline-block text-xs font-semibold text-red-600 hover:underline pt-1"
             >
               Browse Catalog

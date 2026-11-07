@@ -1,9 +1,15 @@
+"use client";
+
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { buttonVariants } from "../ui/button";
 import { ArrowRight, Package, PhoneCall } from "lucide-react";
+import { useSession } from "@/lib/auth-client";
 
 export default function PurchaseCtaSection() {
+  const { data: session } = useSession();
+  const isAuthenticated = Boolean(session?.user);
+
   return (
     <section
       className={cn(
@@ -32,20 +38,20 @@ export default function PurchaseCtaSection() {
           Contact Us for Purchasing &amp; Supply
         </h2>
         <p className="text-sm md:text-base lg:text-lg text-zinc-200 max-w-xl mb-8 leading-relaxed drop-shadow-sm">
-          Need urgent counter pick-up for a single bike part, or looking to
-          register your shop for wholesale master crate shipments? Our team is
-          ready to assist you.
+          {isAuthenticated
+            ? "Looking for bulk master crate shipments, special dealer trade schemes, or warehouse dispatch? Our team is ready to assist you."
+            : "Need urgent counter pick-up for a single bike part, or looking to register your shop for wholesale master crate shipments? Our team is ready to assist you."}
         </p>
         <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
           <Link
-            href="/signup"
+            href={isAuthenticated ? "/wholesale" : "/signup"}
             className={cn(
               buttonVariants({ size: "lg" }),
               "w-full sm:w-auto rounded-lg bg-red-600 hover:bg-red-700 text-white font-medium px-8 h-12 text-sm md:text-base shadow-lg transition-transform hover:scale-105"
             )}
           >
             <Package className="mr-2 size-5" />
-            Dealer Registration
+            {isAuthenticated ? "Wholesale Portal" : "Dealer Registration"}
             <ArrowRight className="ml-2 size-4" />
           </Link>
           <Link
@@ -56,7 +62,7 @@ export default function PurchaseCtaSection() {
             )}
           >
             <PhoneCall className="mr-2 size-4" />
-            Retail Counter
+            {isAuthenticated ? "Dealer Support" : "Retail Counter"}
             <ArrowRight className="ml-2 size-4" />
           </Link>
         </div>
